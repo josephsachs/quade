@@ -1,0 +1,54 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Quade.ViewModels"
+        x:Class="Quade.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Quade"
+        Width="800" Height="600">
+
+    <DockPanel>
+        <!-- Menu -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Click="NewConversation_Click"/>
+                <Separator/>
+                <MenuItem Header="_Quit" Click="Quit_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Chat Area -->
+        <DockPanel>
+            <!-- Messages -->
+            <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Messages}" Margin="10">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="10" Margin="0,5">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                               FontSize="10"
+                                               Foreground="Gray"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Input Area -->
+            <Grid DockPanel.Dock="Bottom" Margin="10" ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0"
+                         Text="{Binding InputMessage}"
+                         Watermark="Type a message..."
+                         IsEnabled="{Binding !IsSending}"/>
+
+                <Button Grid.Column="1"
+                        Content="Send"
+                        Click="SendMessage_Click"
+                        Margin="5,0,0,0"
+                        IsEnabled="{Binding !IsSending}"/>
+            </Grid>
+        </DockPanel>
+    </DockPanel>
+</Window>
