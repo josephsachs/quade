@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
 using Quade.Models;
@@ -18,8 +19,10 @@ public class MainWindowViewModel : ViewModelBase
     private string _inputMessage = string.Empty;
     private bool _isSending;
     private ConversationMode _currentMode = ConversationMode.Empower;
+    private string _selectedModelId = string.Empty;
 
     public ObservableCollection<Message> Messages { get; } = new();
+    public ObservableCollection<ModelInfo> AvailableModels { get; } = new();
     
     public ThoughtProcessLogger Logger => _logger;
 
@@ -41,6 +44,12 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _currentMode, value);
     }
 
+    public string SelectedModelId
+    {
+        get => _selectedModelId;
+        set => this.RaiseAndSetIfChanged(ref _selectedModelId, value);
+    }
+
     public MainWindowViewModel(
         ChatService chatService,
         ConfigService configService,
@@ -55,27 +64,85 @@ public class MainWindowViewModel : ViewModelBase
         _conversationService = conversationService;
     }
 
-    public async Task SendMessageAsync()
+    public async Task InitializeAsync()
     {
-        if (string.IsNullOrWhiteSpace(InputMessage) || IsSending)
-            return;
+        var models = await _configService.LoadModelsAsync();
+        
+        if (models.Count == 0)
+        {
+            await RefreshModelsAsync();
+        }
+        else
+        {
+            AvailableModels.Clear();
+            foreach (var model in models)
+            {
+                AvailableModels.Add(model);
+            }
+        }
 
-        var message = InputMessage;
-        InputMessage = string.Empty;
-        IsSending = true;
+        var config = await _configService.LoadConfigAsync();
+        SelectedModelId = config.ConversationalModel;
+    }
 
+    public async Task RefreshModelsAsync()
+    {
         try
         {
-            Messages.Add(new Message
-            {
-                Content = message,
-                IsUser = true,
-                Mode = CurrentMode,
-                Timestamp = DateTime.Now
-            });
-
-            var (response, newMode) = await _chatService.SendMessageAsync(message);
+            var models = await _apiClient.GetAvailableModelsAsync();
             
+            AvailableModels.Clear();
+            foreach (var model in models)
+            {
+                AvailableModels.Add(model);
+            }
+            
+            await _configService.SaveModelsAsync(models);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to refresh models: {ex.Message}");
+        }
+    }
+
+    public async Task SelectModelAsync(string modelId)
+    {
+        SelectedModelId = modelId;
+        
+        var config = await _configService.LoadConfigAsync();
+        config.ConversationalModel = modelId;
+        await _configService.SaveConfigAsync(config);
+    }
+
+    public void CanSendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(InputMessage))
+            throw new Exception("Message cannot be empty.");
+        
+        if (IsSending)
+            throw new Exception("Already sending a message.");
+        
+        if (!AvailableModels.Any(m => m.Id == SelectedModelId))
+            throw new Exception("Selected model is not available. Please select a valid model from the Model menu.");
+    }
+
+    public void AddUserMessage(string messageText)
+    {
+        Messages.Add(new Message
+        {
+            Content = messageText,
+            IsUser = true,
+            Mode = CurrentMode,
+            Timestamp = DateTime.Now
+        });
+    }
+
+    public async Task ProcessResponseAsync(string userMessageText)
+    {
+        IsSending = true;
+        try
+        {
+            var (response, newMode) = await _chatService.SendMessageAsync(userMessageText);
             CurrentMode = newMode;
             Messages.Add(response);
         }

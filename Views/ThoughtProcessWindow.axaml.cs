@@ -50,7 +50,7 @@ public partial class ThoughtProcessWindow : Window
             var viewport = scrollViewer.Viewport.Height;
             var maxOffset = extent - viewport;
             
-            _isUserAtBottom = (maxOffset - offset) <= 25;
+            _isUserAtBottom = (maxOffset - offset) <= 50;
         }
     }
 

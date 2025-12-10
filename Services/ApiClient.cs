@@ -34,15 +34,13 @@ public class ApiClient
         var response = await _httpClient.GetAsync("https://api.anthropic.com/v1/models");
         
         var content = await response.Content.ReadAsStringAsync();
-        Console.WriteLine($"Status: {response.StatusCode}");
-        Console.WriteLine($"Response: {content}");
         
         response.EnsureSuccessStatusCode();
         
         var result = JsonSerializer.Deserialize<ModelsResponse>(content);
         
         return result?.Data
-            .Where(m => m.Type == "chat")
+            .Where(m => m.Type == "model")
             .OrderByDescending(m => m.CreatedAt)
             .ToList() ?? new List<ModelInfo>();
     }

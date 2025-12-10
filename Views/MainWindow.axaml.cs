@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -7,6 +8,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Quade.Models;
 using Quade.ViewModels;
 
 namespace Quade.Views;
@@ -14,7 +16,6 @@ namespace Quade.Views;
 public partial class MainWindow : Window
 {
     private ThoughtProcessWindow? _thoughtProcessWindow;
-    private bool _isUserAtBottom = true;
 
     public MainWindow()
     {
@@ -30,22 +31,148 @@ public partial class MainWindow : Window
         
         if (DataContext is MainWindowViewModel viewModel)
         {
+            viewModel.AvailableModels.CollectionChanged += OnModelsChanged;
+            viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            viewModel.Messages.CollectionChanged += OnMessagesChanged;
+            
             await viewModel.LoadAutoSaveAsync();
             ScrollToBottom();
+            
+            BuildModelMenu();
         }
     }
 
-    private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    private void OnModelsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (sender is ScrollViewer scrollViewer)
+        BuildModelMenu();
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainWindowViewModel.SelectedModelId))
         {
-            var offset = scrollViewer.Offset.Y;
-            var extent = scrollViewer.Extent.Height;
-            var viewport = scrollViewer.Viewport.Height;
-            var maxOffset = extent - viewport;
-            
-            _isUserAtBottom = (maxOffset - offset) <= 25;
+            BuildModelMenu();
         }
+    }
+
+    private void OnMessagesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems != null)
+        {
+            foreach (Message msg in e.NewItems)
+            {
+                if (!msg.IsUser)
+                {
+                    ScrollToBottom();
+                }
+            }
+        }
+    }
+
+    private void BuildModelMenu()
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+            return;
+
+        var modelMenu = this.FindControl<MenuItem>("ModelMenu");
+        if (modelMenu == null)
+            return;
+
+        modelMenu.Items.Clear();
+
+        foreach (var model in viewModel.AvailableModels)
+        {
+            var menuItem = new MenuItem
+            {
+                Header = model.DisplayName,
+                Tag = model.Id
+            };
+
+            if (model.Id == viewModel.SelectedModelId)
+            {
+                menuItem.Icon = new TextBlock { Text = "✓" };
+            }
+
+            menuItem.Click += async (s, e) => await OnModelSelected(s, e);
+            modelMenu.Items.Add(menuItem);
+        }
+
+        if (viewModel.AvailableModels.Count > 0)
+        {
+            modelMenu.Items.Add(new Separator());
+        }
+
+        var refreshItem = new MenuItem { Header = "_Refresh" };
+        refreshItem.Click += async (s, e) => await OnRefreshModels(s, e);
+        modelMenu.Items.Add(refreshItem);
+    }
+
+    private async Task OnModelSelected(object? sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && 
+            menuItem.Tag is string modelId &&
+            DataContext is MainWindowViewModel viewModel)
+        {
+            try
+            {
+                await viewModel.SelectModelAsync(modelId);
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialog("Model Selection Error", ex.Message);
+            }
+        }
+    }
+
+    private async Task OnRefreshModels(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            try
+            {
+                await viewModel.RefreshModelsAsync();
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialog("Model Refresh Error", ex.Message);
+            }
+        }
+    }
+
+    private async Task ShowErrorDialog(string title, string message)
+    {
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 400,
+            Height = 150,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false
+        };
+
+        var stack = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Spacing = 15
+        };
+
+        stack.Children.Add(new TextBlock
+        {
+            Text = message,
+            TextWrapping = Avalonia.Media.TextWrapping.Wrap
+        });
+
+        var okButton = new Button
+        {
+            Content = "OK",
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
+        };
+
+        okButton.Click += (s, e) => dialog.Close();
+        stack.Children.Add(okButton);
+
+        dialog.Content = stack;
+        await dialog.ShowDialog(this);
     }
 
     private async void OnKeyDownTunnel(object? sender, KeyEventArgs e)
@@ -56,10 +183,21 @@ public partial class MainWindow : Window
         {
             e.Handled = true;
             
-            if (DataContext is MainWindowViewModel viewModel && !viewModel.IsSending)
+            if (DataContext is MainWindowViewModel viewModel)
             {
-                await viewModel.SendMessageAsync();
-                ScrollToBottom();  // Always scroll when user sends
+                try
+                {
+                    viewModel.CanSendMessage();
+                    var message = viewModel.InputMessage;
+                    viewModel.InputMessage = string.Empty;
+                    viewModel.AddUserMessage(message);
+                    ScrollToBottom();
+                    await viewModel.ProcessResponseAsync(message);
+                }
+                catch (Exception ex)
+                {
+                    await ShowErrorDialog("Send Message Error", ex.Message);
+                }
             }
         }
     }
@@ -68,8 +206,19 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel viewModel)
         {
-            await viewModel.SendMessageAsync();
-            ScrollToBottom();  // Always scroll when user sends
+            try
+            {
+                viewModel.CanSendMessage();
+                var message = viewModel.InputMessage;
+                viewModel.InputMessage = string.Empty;
+                viewModel.AddUserMessage(message);
+                ScrollToBottom();
+                await viewModel.ProcessResponseAsync(message);
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialog("Send Message Error", ex.Message);
+            }
         }
     }
 
@@ -205,14 +354,6 @@ public partial class MainWindow : Window
         if (this.FindControl<ScrollViewer>("MessageScrollViewer") is ScrollViewer scrollViewer)
         {
             scrollViewer.ScrollToEnd();
-        }
-    }
-
-    private void ScrollToBottomIfNeeded()
-    {
-        if (_isUserAtBottom)
-        {
-            ScrollToBottom();
         }
     }
 }

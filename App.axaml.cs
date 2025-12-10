@@ -53,14 +53,18 @@ public partial class App : Application
             var config = await configService.LoadConfigAsync();
             apiClient.SetApiKey(config.ApiKey);
 
+            var viewModel = new MainWindowViewModel(
+                chatService, 
+                configService, 
+                apiClient, 
+                logger, 
+                conversationService);
+
+            await viewModel.InitializeAsync();
+
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(
-                    chatService, 
-                    configService, 
-                    apiClient, 
-                    logger, 
-                    conversationService)
+                DataContext = viewModel
             };
 
             desktop.MainWindow.Show();

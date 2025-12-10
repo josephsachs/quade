@@ -9,16 +9,17 @@ public class ModeDetector
 {
     private readonly ApiClient _apiClient;
     private readonly ThoughtProcessLogger _logger;
-    private const string MODE_SELECTOR_MODEL = "claude-haiku-4-5-20251001";
+    private const string MODE_SELECTOR_MODEL = "claude-3-5-haiku-20241022";
     
-    private const string CLASSIFICATION_PROMPT = @"Given the recent conversation, which mode is most appropriate?
+    private const string CLASSIFICATION_PROMPT = @"Choose a mode based on the recent messages.
 
-empower: User needs encouragement, validation, or support
-investigate: User needs clarification, definition, or deeper understanding
-opine: User wants exploration, speculation, or alternative perspectives
-critique: User needs critical feedback, challenge, or rigorous analysis
+        Do the messages contain objective questions or factual queries? Are there undefined or ambiguous terms? Do you need more information to answers? Use INVESTIGATE.
+        Do the messages contain subjective questions or prompts for an opinion? Do they state a subjective opinion without asking a question? Is it reasonable? Use OPINE.
+        Do the messages contain propositions seek an affirmative response? Are they reasonable? Is straightforward validation or emotional support appropriate? Use EMPOWER.
+        Do the messages contain propositions of a dubious nature? Are they factually doubtful? Are they plans or schemas requiring analysis or careful consideration of fail states? Use CRITIQUE.
 
-Respond with ONLY the mode name (empower, investigate, opine, or critique).";
+        Please respond with ONLY one word, the mode name (empower, investigate, opine, or critique). The real response will be requested later."
+    ;
 
     public ModeDetector(ApiClient apiClient, ThoughtProcessLogger logger)
     {

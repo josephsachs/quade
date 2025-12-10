@@ -17,6 +17,9 @@
                 <Separator/>
                 <MenuItem Header="_Quit" Click="Quit_Click"/>
             </MenuItem>
+            <MenuItem Header="_Model" x:Name="ModelMenu">
+                <!-- Model items will be added dynamically in code-behind -->
+            </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Show _Thought Process" 
                           x:Name="ThoughtProcessMenuItem"
@@ -44,7 +47,6 @@
 
             <ScrollViewer x:Name="MessageScrollViewer" 
                           VerticalScrollBarVisibility="Auto"
-                          ScrollChanged="OnScrollChanged"
                           Margin="10">
                 <ItemsControl ItemsSource="{Binding Messages}">
                     <ItemsControl.ItemTemplate>
