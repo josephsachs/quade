@@ -4,10 +4,9 @@
         x:Class="Quade.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Quade"
-        Width="800" Height="600">
+        Width="1000" Height="750">
 
     <DockPanel>
-        <!-- Menu -->
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New" Click="NewConversation_Click"/>
@@ -16,11 +15,28 @@
             </MenuItem>
         </Menu>
 
-        <!-- Chat Area -->
         <DockPanel>
-            <!-- Messages -->
-            <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Messages}" Margin="10">
+            <Grid DockPanel.Dock="Bottom" Margin="10" ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0"
+                         x:Name="InputTextBox"
+                         Text="{Binding InputMessage}"
+                         Watermark="Type a message..."
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MaxHeight="100"
+                         IsEnabled="{Binding !IsSending}"/>
+
+                <Button Grid.Column="1"
+                        Content="Send"
+                        Click="SendMessage_Click"
+                        Margin="5,0,0,0"
+                        IsEnabled="{Binding !IsSending}"/>
+            </Grid>
+
+            <ScrollViewer x:Name="MessageScrollViewer" 
+                          VerticalScrollBarVisibility="Auto"
+                          Margin="10">
+                <ItemsControl ItemsSource="{Binding Messages}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Padding="10" Margin="0,5">
@@ -35,20 +51,6 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
-
-            <!-- Input Area -->
-            <Grid DockPanel.Dock="Bottom" Margin="10" ColumnDefinitions="*,Auto">
-                <TextBox Grid.Column="0"
-                         Text="{Binding InputMessage}"
-                         Watermark="Type a message..."
-                         IsEnabled="{Binding !IsSending}"/>
-
-                <Button Grid.Column="1"
-                        Content="Send"
-                        Click="SendMessage_Click"
-                        Margin="5,0,0,0"
-                        IsEnabled="{Binding !IsSending}"/>
-            </Grid>
         </DockPanel>
     </DockPanel>
 </Window>
