@@ -9,7 +9,7 @@
 
     <ScrollViewer x:Name="LogScrollViewer"
                   VerticalScrollBarVisibility="Auto"
-                  Padding="10">
+                  Padding="10,10,10,32">
         <ItemsControl ItemsSource="{Binding Entries}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="models:LogEntry">

@@ -6,11 +6,23 @@ namespace Quade.Views;
 
 public partial class ThoughtProcessWindow : Window
 {
+    private bool _isUserAtBottom = true;
+
     public ThoughtProcessWindow()
     {
         InitializeComponent();
         
         DataContextChanged += OnDataContextChanged;
+    }
+
+    protected override void OnOpened(System.EventArgs e)
+    {
+        base.OnOpened(e);
+        
+        if (this.FindControl<ScrollViewer>("LogScrollViewer") is ScrollViewer scrollViewer)
+        {
+            scrollViewer.ScrollChanged += OnScrollChanged;
+        }
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
@@ -25,7 +37,20 @@ public partial class ThoughtProcessWindow : Window
     {
         if (e.Action == NotifyCollectionChangedAction.Add)
         {
-            ScrollToBottom();
+            ScrollToBottomIfNeeded();
+        }
+    }
+
+    private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (sender is ScrollViewer scrollViewer)
+        {
+            var offset = scrollViewer.Offset.Y;
+            var extent = scrollViewer.Extent.Height;
+            var viewport = scrollViewer.Viewport.Height;
+            var maxOffset = extent - viewport;
+            
+            _isUserAtBottom = (maxOffset - offset) <= 25;
         }
     }
 
@@ -34,6 +59,14 @@ public partial class ThoughtProcessWindow : Window
         if (this.FindControl<ScrollViewer>("LogScrollViewer") is ScrollViewer scrollViewer)
         {
             scrollViewer.ScrollToEnd();
+        }
+    }
+
+    private void ScrollToBottomIfNeeded()
+    {
+        if (_isUserAtBottom)
+        {
+            ScrollToBottom();
         }
     }
 

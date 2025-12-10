@@ -13,6 +13,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly ConfigService _configService;
     private readonly ApiClient _apiClient;
     private readonly ThoughtProcessLogger _logger;
+    private readonly ConversationService _conversationService;
 
     private string _inputMessage = string.Empty;
     private bool _isSending;
@@ -44,12 +45,14 @@ public class MainWindowViewModel : ViewModelBase
         ChatService chatService,
         ConfigService configService,
         ApiClient apiClient,
-        ThoughtProcessLogger logger)
+        ThoughtProcessLogger logger,
+        ConversationService conversationService)
     {
         _chatService = chatService;
         _configService = configService;
         _apiClient = apiClient;
         _logger = logger;
+        _conversationService = conversationService;
     }
 
     public async Task SendMessageAsync()
@@ -92,10 +95,71 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public void NewConversation()
+    public async Task NewConversationAsync()
     {
+        await AutoSaveAsync();
         Messages.Clear();
         _chatService.ClearConversation();
         CurrentMode = ConversationMode.Empower;
+    }
+
+    public async Task SaveConversationAsync(string filepath)
+    {
+        await _conversationService.SaveConversationAsync(
+            new System.Collections.Generic.List<Message>(Messages),
+            CurrentMode,
+            filepath);
+    }
+
+    public async Task LoadConversationAsync(string filepath)
+    {
+        await AutoSaveAsync();
+        
+        var data = await _conversationService.LoadConversationAsync(filepath);
+        if (data != null)
+        {
+            Messages.Clear();
+            foreach (var msg in data.Messages)
+            {
+                Messages.Add(msg);
+            }
+            CurrentMode = data.CurrentMode;
+            _chatService.LoadConversation(data.Messages);
+        }
+    }
+
+    public async Task AutoSaveAsync()
+    {
+        if (Messages.Count > 0)
+        {
+            await _conversationService.AutoSaveAsync(
+                new System.Collections.Generic.List<Message>(Messages),
+                CurrentMode);
+        }
+    }
+
+    public async Task LoadAutoSaveAsync()
+    {
+        var data = await _conversationService.LoadAutoSaveAsync();
+        if (data != null && data.Messages.Count > 0)
+        {
+            Messages.Clear();
+            foreach (var msg in data.Messages)
+            {
+                Messages.Add(msg);
+            }
+            CurrentMode = data.CurrentMode;
+            _chatService.LoadConversation(data.Messages);
+        }
+    }
+
+    public string GenerateTimestampedFilename()
+    {
+        return _conversationService.GenerateTimestampedFilename();
+    }
+
+    public string GetConversationsDirectory()
+    {
+        return _conversationService.GetConversationsDirectory();
     }
 }

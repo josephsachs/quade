@@ -23,6 +23,7 @@ public partial class App : Application
             var configService = new ConfigService();
             var apiClient = new ApiClient();
             var logger = new ThoughtProcessLogger();
+            var conversationService = new ConversationService();
             var modeDetector = new ModeDetector(apiClient, logger);
             var chatService = new ChatService(apiClient, modeDetector, configService, logger);
 
@@ -54,7 +55,12 @@ public partial class App : Application
 
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(chatService, configService, apiClient, logger)
+                DataContext = new MainWindowViewModel(
+                    chatService, 
+                    configService, 
+                    apiClient, 
+                    logger, 
+                    conversationService)
             };
 
             desktop.MainWindow.Show();

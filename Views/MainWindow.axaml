@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Quade.ViewModels"
+        xmlns:models="using:Quade.Models"
         x:Class="Quade.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Quade"
@@ -10,6 +11,9 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New" Click="NewConversation_Click"/>
+                <MenuItem Header="_Save" Click="Save_Click"/>
+                <MenuItem Header="Save _As..." Click="SaveAs_Click"/>
+                <MenuItem Header="_Load..." Click="Load_Click"/>
                 <Separator/>
                 <MenuItem Header="_Quit" Click="Quit_Click"/>
             </MenuItem>
@@ -40,17 +44,44 @@
 
             <ScrollViewer x:Name="MessageScrollViewer" 
                           VerticalScrollBarVisibility="Auto"
+                          ScrollChanged="OnScrollChanged"
                           Margin="10">
                 <ItemsControl ItemsSource="{Binding Messages}">
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate DataType="models:Message">
                             <Border Padding="10" Margin="0,5">
-                                <StackPanel Spacing="5">
-                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+                                    <Border Grid.Column="0"
+                                            Grid.RowSpan="2"
+                                            Width="40"
+                                            Height="40"
+                                            CornerRadius="20"
+                                            Background="{Binding IconColor}"
+                                            VerticalAlignment="Top"
+                                            Margin="0,0,10,0">
+                                        <TextBlock Text="{Binding IconText}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="Black"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <TextBox Grid.Column="1"
+                                             Grid.Row="0"
+                                             Text="{Binding Content}"
+                                             TextWrapping="Wrap"
+                                             IsReadOnly="True"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             Padding="0"
+                                             Margin="0,0,0,5"/>
+                                    <TextBlock Grid.Column="1"
+                                               Grid.Row="1"
+                                               Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
                                                FontSize="10"
                                                Foreground="Gray"/>
-                                </StackPanel>
+                                </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
