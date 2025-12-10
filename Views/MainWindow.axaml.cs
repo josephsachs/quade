@@ -7,6 +7,8 @@ namespace Quade.Views;
 
 public partial class MainWindow : Window
 {
+    private ThoughtProcessWindow? _thoughtProcessWindow;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -51,6 +53,29 @@ public partial class MainWindow : Window
     private void Quit_Click(object? sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void ShowThoughtProcess_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            if (_thoughtProcessWindow == null)
+            {
+                _thoughtProcessWindow = new ThoughtProcessWindow
+                {
+                    DataContext = new ThoughtProcessViewModel(viewModel.Logger)
+                };
+            }
+
+            if (_thoughtProcessWindow.IsVisible)
+            {
+                _thoughtProcessWindow.Hide();
+            }
+            else
+            {
+                _thoughtProcessWindow.Show();
+            }
+        }
     }
 
     private void ScrollToBottom()

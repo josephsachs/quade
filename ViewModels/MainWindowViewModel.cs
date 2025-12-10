@@ -12,12 +12,15 @@ public class MainWindowViewModel : ViewModelBase
     private readonly ChatService _chatService;
     private readonly ConfigService _configService;
     private readonly ApiClient _apiClient;
+    private readonly ThoughtProcessLogger _logger;
 
     private string _inputMessage = string.Empty;
     private bool _isSending;
     private ConversationMode _currentMode = ConversationMode.Empower;
 
     public ObservableCollection<Message> Messages { get; } = new();
+    
+    public ThoughtProcessLogger Logger => _logger;
 
     public string InputMessage
     {
@@ -40,11 +43,13 @@ public class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(
         ChatService chatService,
         ConfigService configService,
-        ApiClient apiClient)
+        ApiClient apiClient,
+        ThoughtProcessLogger logger)
     {
         _chatService = chatService;
         _configService = configService;
         _apiClient = apiClient;
+        _logger = logger;
     }
 
     public async Task SendMessageAsync()

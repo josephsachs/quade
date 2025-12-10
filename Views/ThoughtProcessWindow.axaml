@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Quade.ViewModels"
+        xmlns:models="using:Quade.Models"
+        x:Class="Quade.Views.ThoughtProcessWindow"
+        x:DataType="vm:ThoughtProcessViewModel"
+        Title="Thought Process"
+        Width="700" Height="500">
+
+    <ScrollViewer x:Name="LogScrollViewer"
+                  VerticalScrollBarVisibility="Auto"
+                  Padding="10">
+        <ItemsControl ItemsSource="{Binding Entries}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="models:LogEntry">
+                    <Border Padding="5" Margin="0,2">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss.fff}'}"
+                                       FontSize="10"
+                                       FontFamily="Consolas,Courier New,monospace"
+                                       Foreground="Gray"/>
+                            <TextBlock Text="{Binding Content}"
+                                       TextWrapping="Wrap"
+                                       FontFamily="Consolas,Courier New,monospace"
+                                       FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</Window>

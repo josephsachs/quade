@@ -8,6 +8,7 @@ namespace Quade.Services;
 public class ModeDetector
 {
     private readonly ApiClient _apiClient;
+    private readonly ThoughtProcessLogger _logger;
     private const string MODE_SELECTOR_MODEL = "claude-haiku-4-5-20251001";
     
     private const string CLASSIFICATION_PROMPT = @"Given the recent conversation, which mode is most appropriate?
@@ -19,9 +20,10 @@ critique: User needs critical feedback, challenge, or rigorous analysis
 
 Respond with ONLY the mode name (empower, investigate, opine, or critique).";
 
-    public ModeDetector(ApiClient apiClient)
+    public ModeDetector(ApiClient apiClient, ThoughtProcessLogger logger)
     {
         _apiClient = apiClient;
+        _logger = logger;
     }
 
     public async Task<ConversationMode> DetectMode(List<Message> recentMessages)
@@ -31,11 +33,16 @@ Respond with ONLY the mode name (empower, investigate, opine, or critique).";
             return ConversationMode.Empower;
         }
 
+        _logger.LogModeDetectionStart();
+        _logger.LogModePrompt(CLASSIFICATION_PROMPT);
+
         var response = await _apiClient.SendMessageAsync(
             recentMessages.TakeLast(3).ToList(),
             CLASSIFICATION_PROMPT,
             MODE_SELECTOR_MODEL
         );
+
+        _logger.LogModeResponse(response);
 
         return ParseMode(response);
     }

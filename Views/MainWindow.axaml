@@ -13,6 +13,11 @@
                 <Separator/>
                 <MenuItem Header="_Quit" Click="Quit_Click"/>
             </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="Show _Thought Process" 
+                          x:Name="ThoughtProcessMenuItem"
+                          Click="ShowThoughtProcess_Click"/>
+            </MenuItem>
         </Menu>
 
         <DockPanel>

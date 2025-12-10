@@ -22,8 +22,9 @@ public partial class App : Application
         {
             var configService = new ConfigService();
             var apiClient = new ApiClient();
-            var modeDetector = new ModeDetector(apiClient);
-            var chatService = new ChatService(apiClient, modeDetector, configService);
+            var logger = new ThoughtProcessLogger();
+            var modeDetector = new ModeDetector(apiClient, logger);
+            var chatService = new ChatService(apiClient, modeDetector, configService, logger);
 
             var hasApiKey = await configService.HasApiKeyAsync();
             
@@ -40,7 +41,6 @@ public partial class App : Application
                 setupWindow.Show();
                 await tcs.Task;
                 
-                // Check if they saved a key
                 var hasKeyNow = await configService.HasApiKeyAsync();
                 if (!hasKeyNow)
                 {
@@ -54,7 +54,7 @@ public partial class App : Application
 
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(chatService, configService, apiClient)
+                DataContext = new MainWindowViewModel(chatService, configService, apiClient, logger)
             };
 
             desktop.MainWindow.Show();
