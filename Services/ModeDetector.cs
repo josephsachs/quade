@@ -40,7 +40,8 @@ public class ModeDetector
         var response = await _apiClient.SendMessageAsync(
             recentMessages.TakeLast(3).ToList(),
             CLASSIFICATION_PROMPT,
-            MODE_SELECTOR_MODEL
+            MODE_SELECTOR_MODEL,
+            maxTokens: 3
         );
 
         _logger.LogModeResponse(response);

@@ -48,12 +48,13 @@ public class ApiClient
     public async Task<string> SendMessageAsync(
         List<Message> messages, 
         string systemPrompt,
-        string model)
+        string model,
+        int maxTokens = 4096)
     {
         var request = new
         {
             model = model,
-            max_tokens = 4096,
+            max_tokens = maxTokens,
             system = systemPrompt,
             messages = messages.Select(m => new
             {
