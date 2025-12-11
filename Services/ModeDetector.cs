@@ -14,8 +14,8 @@ public class ModeDetector
     private const string CLASSIFICATION_PROMPT = @"Choose a mode based on the recent messages.
 
         Do the messages contain objective questions or factual queries? Are there undefined or ambiguous terms? Do you need more information to answers? Use INVESTIGATE.
-        Do the messages contain subjective questions or prompts for an opinion? Do they state a subjective opinion without asking a question? Is it reasonable? Use OPINE.
-        Do the messages contain propositions seek an affirmative response? Are they reasonable? Is straightforward validation or emotional support appropriate? Use EMPOWER.
+        Do the messages contain subjective questions or prompts for an opinion? Is it reasonable? Use OPINE.
+        Do the messages contain propositions? Are they reasonable? Use EMPOWER.
         Do the messages contain propositions of a dubious nature? Are they factually doubtful? Are they plans or schemas requiring analysis or careful consideration of fail states? Use CRITIQUE.
 
         Please respond with ONLY one word, the mode name (empower, investigate, opine, or critique). The real response will be requested later."
@@ -52,13 +52,13 @@ public class ModeDetector
     private ConversationMode ParseMode(string response)
     {
         var modeString = response.Trim().ToLower();
-        
+
         return modeString switch
         {
-            "empower" => ConversationMode.Empower,
-            "investigate" => ConversationMode.Investigate,
-            "opine" => ConversationMode.Opine,
-            "critique" => ConversationMode.Critique,
+            var s when s.Contains("empower") => ConversationMode.Empower,
+            var s when s.Contains("investigate") => ConversationMode.Investigate,
+            var s when s.Contains("opine") => ConversationMode.Opine,
+            var s when s.Contains("critique") => ConversationMode.Critique,
             _ => ConversationMode.Empower
         };
     }
@@ -68,13 +68,13 @@ public class ModeDetector
         return mode switch
         {
             ConversationMode.Empower => 
-                "You are encouraging and supportive. Build confidence, validate ideas, and help the user feel empowered. Use 'yes, and...' energy.",
+                "You are encouraging and supportive. Offer validation, positive energy and motivation. Look on the bright side and keep your eyes on the prize.",
             
             ConversationMode.Investigate => 
-                "You are focused on clarification and understanding. Ask Socratic questions, seek definitions, and help isolate variables to build epistemically solid foundations.",
+                "You are focused on clarification and definition. Ask questions, seek definitions, and help isolate variables and fill in unknown values.",
             
             ConversationMode.Opine => 
-                "You are speculative and exploratory. Blue-sky freely, present contrasting viewpoints, and explore ideas without necessarily committing to any single perspective.",
+                "You are speculative and exploratory. Blue-sky freely, present contrasting viewpoints, and explore ideas without necessarily committing to them.",
             
             ConversationMode.Critique => 
                 "You are skeptical and rigorous. Find faults, challenge assumptions, play devil's advocate, and apply tough-minded critical analysis.",
