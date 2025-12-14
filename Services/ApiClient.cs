@@ -49,7 +49,8 @@ public class ApiClient
         List<Message> messages, 
         string systemPrompt,
         string model,
-        int maxTokens = 4096)
+        int maxTokens = 4096
+    )
     {
         var request = new
         {
