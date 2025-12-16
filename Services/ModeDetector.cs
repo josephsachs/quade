@@ -13,7 +13,7 @@ public class ModeDetector
 
     private const string MODE_SELECT_IS_QUESTION = @"Is the message a question?";
 
-    private const string MODE_SELECT_IS_MORE_INFORMATION_NEEDED = @"Do you need more information to be confident expressing a view?";
+    private const string MODE_SELECT_IS_STATEMENT_CLEAR = @"Is the statement clear enough to respond to with confidence?";
 
     private const string MODE_SELECT_IS_INFORMATIONAL = @"Is the question informational?";
 
@@ -62,7 +62,13 @@ public class ModeDetector
             var isInformational = await ModeQuery(lastMessage, MODE_SELECT_IS_INFORMATIONAL);
 
             if (isInformational.Contains("Y")) {
-                return ConversationMode.Investigate;
+                var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
+
+                if (isClear.Contains("Y")) {
+                    return ConversationMode.Opine;
+                } else {
+                    return ConversationMode.Investigate;
+                }
             } else {
                 return ConversationMode.Opine;
             }
@@ -83,11 +89,9 @@ public class ModeDetector
                     }
                 } else {
                     // Not personal
-                    var needMoreInfo = await ModeQuery(lastMessage, MODE_SELECT_IS_MORE_INFORMATION_NEEDED); 
+                    var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
 
-                    if (needMoreInfo.Contains("Y")) {
-                        return ConversationMode.Investigate;
-                    } else {
+                    if (isClear.Contains("Y")) {
                         var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
 
                         if (isReasonable.Contains("Y")) {
@@ -95,6 +99,8 @@ public class ModeDetector
                         } else {
                             return ConversationMode.Critique;
                         }
+                    } else {
+                        return ConversationMode.Investigate;
                     }
                 }
             } else {
@@ -102,9 +108,9 @@ public class ModeDetector
                 var isPlan = await ModeQuery(lastMessage, MODE_SELECT_IS_PLAN);
 
                 if (isPlan.Contains("Y")) {
-                    var needMoreInfo = await ModeQuery(lastMessage, MODE_SELECT_IS_MORE_INFORMATION_NEEDED); 
+                    var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
 
-                    if (needMoreInfo.Contains("Y")) {
+                    if (isClear.Contains("Y")) {
                         return ConversationMode.Investigate;
                     } else {
                         var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
@@ -117,12 +123,14 @@ public class ModeDetector
                     }
                 } else {
                     // Not a plan
-                    var needMoreInfo = await ModeQuery(lastMessage, MODE_SELECT_IS_MORE_INFORMATION_NEEDED); 
+                    var needMoreInfo = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
 
                     if (needMoreInfo.Contains("Y")) {
-                        return ConversationMode.Investigate;
-                    } else {
                         return ConversationMode.Opine;
+                    } else {
+                        return ConversationMode.Investigate;
+
+                        
                     }
                 }
             }
