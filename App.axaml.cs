@@ -24,8 +24,9 @@ public partial class App : Application
             var apiClient = new ApiClient();
             var logger = new ThoughtProcessLogger();
             var conversationService = new ConversationService();
+            var contextBuilder = new ChatContextBuilder();
             var modeDetector = new ModeDetector(apiClient, logger);
-            var chatService = new ChatService(apiClient, modeDetector, configService, logger);
+            var chatService = new ChatService(apiClient, modeDetector, configService, logger, contextBuilder);
 
             var hasApiKey = await configService.HasApiKeyAsync();
             

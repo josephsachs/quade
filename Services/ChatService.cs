@@ -11,6 +11,7 @@ public class ChatService
     private readonly ModeDetector _modeDetector;
     private readonly ConfigService _configService;
     private readonly ThoughtProcessLogger _logger;
+    private readonly ChatContextBuilder _contextBuilder;
     
     private List<Message> _messages = new();
     private ConversationMode _currentMode = ConversationMode.Empower;
@@ -22,12 +23,14 @@ public class ChatService
         ApiClient apiClient, 
         ModeDetector modeDetector,
         ConfigService configService,
-        ThoughtProcessLogger logger)
+        ThoughtProcessLogger logger,
+        ChatContextBuilder contextBuilder)
     {
         _apiClient = apiClient;
         _modeDetector = modeDetector;
         _configService = configService;
         _logger = logger;
+        _contextBuilder = contextBuilder;
     }
 
     public async Task<(Message response, ConversationMode newMode)> SendMessageAsync(string userMessage)
@@ -50,8 +53,10 @@ public class ChatService
         var systemPrompt = ModeDetector.GetSystemPromptForMode(newMode);
         _logger.LogSystemPrompt(newMode, systemPrompt);
 
+        var contextMessages = _contextBuilder.BuildContext(_messages);
+
         var responseText = await _apiClient.SendMessageAsync(
-            _messages,
+            contextMessages,
             systemPrompt,
             config.ConversationalModel
         );
