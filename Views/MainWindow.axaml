@@ -2,6 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Quade.ViewModels"
         xmlns:models="using:Quade.Models"
+        xmlns:behaviors="using:Quade.Behaviors"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
         x:Class="Quade.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Quade"
@@ -28,6 +30,14 @@
         </Menu>
 
         <DockPanel>
+            <TextBlock DockPanel.Dock="Top"
+                       Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       FontSize="10"
+                       Padding="10,5"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding !!ErrorMessage}"/>
+
             <Grid DockPanel.Dock="Bottom" Margin="10" ColumnDefinitions="*,Auto">
                 <TextBox Grid.Column="0"
                          x:Name="InputTextBox"
@@ -68,16 +78,19 @@
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"/>
                                     </Border>
-
                                     <TextBox Grid.Column="1"
-                                             Grid.Row="0"
-                                             Text="{Binding Content}"
-                                             TextWrapping="Wrap"
-                                             IsReadOnly="True"
-                                             BorderThickness="0"
-                                             Background="Transparent"
-                                             Padding="0"
-                                             Margin="0,0,0,5"/>
+                                            Grid.Row="0"
+                                            Text="{Binding Content}"
+                                            TextWrapping="Wrap"
+                                            IsReadOnly="True"
+                                            BorderThickness="0"
+                                            Background="Transparent"
+                                            Padding="0"
+                                            Margin="0,0,0,5">
+                                        <i:Interaction.Behaviors>
+                                            <behaviors:PendingMessageBehavior />
+                                        </i:Interaction.Behaviors>
+                                    </TextBox>
                                     <TextBlock Grid.Column="1"
                                                Grid.Row="1"
                                                Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"

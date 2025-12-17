@@ -20,6 +20,7 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isSending;
     private ConversationMode _currentMode = ConversationMode.Empower;
     private string _selectedModelId = string.Empty;
+    private string _errorMessage = string.Empty;
 
     public ObservableCollection<Message> Messages { get; } = new();
     public ObservableCollection<ModelInfo> AvailableModels { get; } = new();
@@ -48,6 +49,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _selectedModelId;
         set => this.RaiseAndSetIfChanged(ref _selectedModelId, value);
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
     }
 
     public MainWindowViewModel(
@@ -126,35 +133,49 @@ public class MainWindowViewModel : ViewModelBase
             throw new Exception("Selected model is not available. Please select a valid model from the Model menu.");
     }
 
-    public void AddUserMessage(string messageText)
+    public async Task<bool> TrySendMessageAsync(string messageText)
     {
-        Messages.Add(new Message
+        IsSending = true;
+        ErrorMessage = string.Empty;
+
+        var userMessage = new Message
         {
             Content = messageText,
             IsUser = true,
             Mode = CurrentMode,
             Timestamp = DateTime.Now
-        });
-    }
+        };
+        Messages.Add(userMessage);
 
-    public async Task ProcessResponseAsync(string userMessageText)
-    {
-        IsSending = true;
+        var placeholder = new Message
+        {
+            Content = "...",
+            IsUser = false,
+            Mode = CurrentMode,
+            IsPending = true,
+            Timestamp = DateTime.Now
+        };
+        Messages.Add(placeholder);
+
         try
         {
-            var (response, newMode) = await _chatService.SendMessageAsync(userMessageText);
+            var (response, newMode) = await _chatService.SendMessageAsync(messageText);
+            
+            placeholder.Content = response.Content;
+            placeholder.IsPending = false;
+            placeholder.Mode = newMode;
+            placeholder.Timestamp = response.Timestamp;
+            
             CurrentMode = newMode;
-            Messages.Add(response);
+            
+            return true;
         }
         catch (Exception ex)
         {
-            Messages.Add(new Message
-            {
-                Content = $"Error: {ex.Message}",
-                IsUser = false,
-                Mode = CurrentMode,
-                Timestamp = DateTime.Now
-            });
+            Messages.Remove(placeholder);
+            Messages.Remove(userMessage);
+            ErrorMessage = ex.Message;
+            return false;
         }
         finally
         {

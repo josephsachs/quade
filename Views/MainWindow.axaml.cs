@@ -188,15 +188,22 @@ public partial class MainWindow : Window
                 try
                 {
                     viewModel.CanSendMessage();
-                    var message = viewModel.InputMessage;
+                    
+                    var messageText = viewModel.InputMessage;
                     viewModel.InputMessage = string.Empty;
-                    viewModel.AddUserMessage(message);
+                    
+                    var success = await viewModel.TrySendMessageAsync(messageText);
+                    
+                    if (!success)
+                    {
+                        viewModel.InputMessage = messageText;
+                    }
+                    
                     ScrollToBottom();
-                    await viewModel.ProcessResponseAsync(message);
                 }
                 catch (Exception ex)
                 {
-                    await ShowErrorDialog("Send Message Error", ex.Message);
+                    viewModel.ErrorMessage = ex.Message;
                 }
             }
         }
@@ -209,15 +216,22 @@ public partial class MainWindow : Window
             try
             {
                 viewModel.CanSendMessage();
-                var message = viewModel.InputMessage;
+                
+                var messageText = viewModel.InputMessage;
                 viewModel.InputMessage = string.Empty;
-                viewModel.AddUserMessage(message);
+                
+                var success = await viewModel.TrySendMessageAsync(messageText);
+                
+                if (!success)
+                {
+                    viewModel.InputMessage = messageText;
+                }
+                
                 ScrollToBottom();
-                await viewModel.ProcessResponseAsync(message);
             }
             catch (Exception ex)
             {
-                await ShowErrorDialog("Send Message Error", ex.Message);
+                viewModel.ErrorMessage = ex.Message;
             }
         }
     }
