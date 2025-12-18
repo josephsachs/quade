@@ -16,6 +16,7 @@ namespace Quade.Views;
 public partial class MainWindow : Window
 {
     private ThoughtProcessWindow? _thoughtProcessWindow;
+    private bool _isUserNearBottom = true;
 
     public MainWindow()
     {
@@ -40,6 +41,14 @@ public partial class MainWindow : Window
             
             BuildModelMenu();
         }
+        
+        if (this.FindControl<ListBox>("MessageListBox") is ListBox listBox)
+        {
+            if (listBox.Scroll is ScrollViewer scrollViewer)
+            {
+                scrollViewer.ScrollChanged += OnScrollChanged;
+            }
+        }
     }
 
     private void OnModelsChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -61,11 +70,24 @@ public partial class MainWindow : Window
         {
             foreach (Message msg in e.NewItems)
             {
-                if (!msg.IsUser)
+                if (!msg.IsUser && _isUserNearBottom)
                 {
-                    ScrollToBottom();
+                    Avalonia.Threading.Dispatcher.UIThread.Post(ScrollToBottom);
                 }
             }
+        }
+    }
+
+    private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (sender is ScrollViewer scrollViewer)
+        {
+            var offset = scrollViewer.Offset.Y;
+            var extent = scrollViewer.Extent.Height;
+            var viewport = scrollViewer.Viewport.Height;
+            var maxOffset = extent - viewport;
+            
+            _isUserNearBottom = maxOffset <= 0 || (maxOffset - offset) <= 10;
         }
     }
 
@@ -198,8 +220,11 @@ public partial class MainWindow : Window
                     {
                         viewModel.InputMessage = messageText;
                     }
-                    
-                    ScrollToBottom();
+                    else
+                    {
+                        _isUserNearBottom = true;
+                        Avalonia.Threading.Dispatcher.UIThread.Post(ScrollToBottom);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -226,8 +251,11 @@ public partial class MainWindow : Window
                 {
                     viewModel.InputMessage = messageText;
                 }
-                
-                ScrollToBottom();
+                else
+                {
+                    _isUserNearBottom = true;
+                    Avalonia.Threading.Dispatcher.UIThread.Post(ScrollToBottom);
+                }
             }
             catch (Exception ex)
             {
@@ -365,9 +393,11 @@ public partial class MainWindow : Window
 
     private void ScrollToBottom()
     {
-        if (this.FindControl<ScrollViewer>("MessageScrollViewer") is ScrollViewer scrollViewer)
+        if (this.FindControl<ListBox>("MessageListBox") is ListBox listBox &&
+            DataContext is MainWindowViewModel viewModel &&
+            viewModel.Messages.Count > 0)
         {
-            scrollViewer.ScrollToEnd();
+            listBox.ScrollIntoView(viewModel.Messages.Count - 1);
         }
     }
 }

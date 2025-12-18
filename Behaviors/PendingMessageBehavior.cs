@@ -1,15 +1,17 @@
 using System;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
+using LiveMarkdown.Avalonia;
+using Quade.Models;
 
 namespace Quade.Behaviors;
 
-public class PendingMessageBehavior : Behavior<TextBox>
+public class PendingMessageBehavior : Behavior<MarkdownRenderer>
 {
     private DispatcherTimer? _timer;
     private int _ellipsisCount = 1;
+    private Message? _message;
 
     protected override void OnAttached()
     {
@@ -17,7 +19,7 @@ public class PendingMessageBehavior : Behavior<TextBox>
         
         if (AssociatedObject != null)
         {
-            AssociatedObject.PropertyChanged += OnTextBoxPropertyChanged;
+            AssociatedObject.DataContextChanged += OnDataContextChanged;
             CheckAndStartAnimation();
         }
     }
@@ -30,13 +32,35 @@ public class PendingMessageBehavior : Behavior<TextBox>
         
         if (AssociatedObject != null)
         {
-            AssociatedObject.PropertyChanged -= OnTextBoxPropertyChanged;
+            AssociatedObject.DataContextChanged -= OnDataContextChanged;
+        }
+        
+        if (_message != null)
+        {
+            _message.PropertyChanged -= OnMessagePropertyChanged;
         }
     }
 
-    private void OnTextBoxPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    private void OnDataContextChanged(object? sender, System.EventArgs e)
     {
-        if (e.Property.Name == nameof(TextBox.Text))
+        if (_message != null)
+        {
+            _message.PropertyChanged -= OnMessagePropertyChanged;
+        }
+        
+        _message = AssociatedObject?.DataContext as Message;
+        
+        if (_message != null)
+        {
+            _message.PropertyChanged += OnMessagePropertyChanged;
+        }
+        
+        CheckAndStartAnimation();
+    }
+
+    private void OnMessagePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Message.IsPending))
         {
             CheckAndStartAnimation();
         }
@@ -44,12 +68,10 @@ public class PendingMessageBehavior : Behavior<TextBox>
 
     private void CheckAndStartAnimation()
     {
-        if (AssociatedObject == null)
+        if (AssociatedObject == null || _message == null)
             return;
 
-        var text = AssociatedObject.Text;
-        
-        if (text == "." || text == ".." || text == "...")
+        if (_message.IsPending)
         {
             if (_timer == null)
             {
@@ -88,10 +110,13 @@ public class PendingMessageBehavior : Behavior<TextBox>
 
     private void OnTimerTick(object? sender, EventArgs e)
     {
-        if (AssociatedObject == null)
+        if (AssociatedObject == null || _message == null)
             return;
 
         _ellipsisCount = (_ellipsisCount % 3) + 1;
-        AssociatedObject.Text = new string('.', _ellipsisCount);
+        
+        var builder = _message.GetOrCreateBuilder();
+        builder.Clear();
+        builder.Append(new string('.', _ellipsisCount));
     }
 }

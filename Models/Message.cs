@@ -1,4 +1,5 @@
 using System;
+using LiveMarkdown.Avalonia;
 using ReactiveUI;
 
 namespace Quade.Models;
@@ -10,6 +11,8 @@ public class Message : ReactiveObject
     private ConversationMode _mode;
     private DateTime _timestamp = DateTime.Now;
     private bool _isPending;
+    private bool _isStreaming;
+    private ObservableStringBuilder? _streamingBuilder;
 
     public string Content
     {
@@ -52,6 +55,41 @@ public class Message : ReactiveObject
             this.RaiseAndSetIfChanged(ref _isPending, value);
             this.RaisePropertyChanged(nameof(IconText));
         }
+    }
+
+    public bool IsStreaming
+    {
+        get => _isStreaming;
+        set => this.RaiseAndSetIfChanged(ref _isStreaming, value);
+    }
+
+    public ObservableStringBuilder? StreamingBuilder
+    {
+        get => _streamingBuilder;
+        set => this.RaiseAndSetIfChanged(ref _streamingBuilder, value);
+    }
+
+    public ObservableStringBuilder GetOrCreateBuilder()
+    {
+        if (StreamingBuilder == null)
+        {
+            StreamingBuilder = new ObservableStringBuilder();
+        }
+        
+        if (!IsPending && !IsStreaming)
+        {
+            var currentBuilderText = StreamingBuilder.ToString();
+            if (currentBuilderText != Content)
+            {
+                StreamingBuilder.Clear();
+                if (!string.IsNullOrEmpty(Content))
+                {
+                    StreamingBuilder.Append(Content);
+                }
+            }
+        }
+        
+        return StreamingBuilder;
     }
 
     public string IconText => IsPending ? "" : (IsUser ? "私" : Mode switch
