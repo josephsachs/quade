@@ -156,24 +156,31 @@ public class MainWindowViewModel : ViewModelBase
         if (index == -1)
             return;
 
-        var messagesToRemove = Messages.Skip(index + 1).ToList();
+        var editedContent = message.Content;
+        
+        var messagesToRemove = Messages.Skip(index).ToList();
         foreach (var msg in messagesToRemove)
         {
             Messages.Remove(msg);
         }
 
-        var editedContent = message.Content;
-        
-        message.IsEditing = false;
-        message.IsFocused = false;
+        var chatMessages = Messages.ToList();
+        _chatService.LoadConversation(chatMessages);
+
         _editingMessage = null;
         this.RaisePropertyChanged(nameof(IsSending));
 
-        var chatMessages = Messages.Take(index).ToList();
-        _chatService.LoadConversation(chatMessages);
-
         IsSending = true;
         ErrorMessage = string.Empty;
+
+        var userMessage = new Message
+        {
+            Content = editedContent,
+            IsUser = true,
+            Mode = CurrentMode,
+            Timestamp = DateTime.Now
+        };
+        Messages.Add(userMessage);
 
         var placeholder = new Message
         {
@@ -199,7 +206,7 @@ public class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             Messages.Remove(placeholder);
-            Messages.Remove(message);
+            Messages.Remove(userMessage);
             ErrorMessage = ex.Message;
             InputMessage = editedContent;
         }
