@@ -333,4 +333,33 @@ public class MainWindowViewModel : ViewModelBase
     {
         return _conversationService.GetConversationsDirectory();
     }
+
+    public async Task<AppConfig> GetConfigAsync()
+    {
+        return await _configService.LoadConfigAsync();
+    }
+
+    public async Task SaveWindowStateAsync(
+        int mainX,
+        int mainY,
+        double mainWidth,
+        double mainHeight,
+        int thoughtX,
+        int thoughtY,
+        double thoughtWidth,
+        double thoughtHeight,
+        bool thoughtWasOpen)
+    {
+        var config = await _configService.LoadConfigAsync();
+        config.MainWindowX = mainX;
+        config.MainWindowY = mainY;
+        config.MainWindowWidth = mainWidth;
+        config.MainWindowHeight = mainHeight;
+        config.ThoughtWindowX = thoughtX;
+        config.ThoughtWindowY = thoughtY;
+        config.ThoughtWindowWidth = thoughtWidth;
+        config.ThoughtWindowHeight = thoughtHeight;
+        config.ThoughtWindowWasOpen = thoughtWasOpen;
+        await _configService.SaveConfigAsync(config);
+    }
 }

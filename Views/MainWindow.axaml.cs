@@ -39,6 +39,12 @@ public partial class MainWindow : Window
             ScrollToBottom();
             
             BuildModelMenu();
+
+            var config = await viewModel.GetConfigAsync();
+            if (config.ThoughtWindowWasOpen)
+            {
+                ShowThoughtProcess_Click(null, new RoutedEventArgs());
+            }
         }
     }
 
@@ -325,14 +331,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void Quit_Click(object? sender, RoutedEventArgs e)
+    private void Quit_Click(object? sender, RoutedEventArgs e)
     {
-        await HandleQuitAsync();
-        
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-        {
-            lifetime.Shutdown();
-        }
+        Close();
     }
 
     private async void OnWindowClosing(object? sender, WindowClosingEventArgs e)
@@ -355,10 +356,33 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel viewModel)
         {
             await viewModel.AutoSaveAsync();
+            
+            double mainWidth = Bounds.Width;
+            double mainHeight = Bounds.Height;
+            int mainX = Position.X;
+            int mainY = Position.Y;
+            
+            double thoughtWidth = _thoughtProcessWindow?.Bounds.Width ?? 700;
+            double thoughtHeight = _thoughtProcessWindow?.Bounds.Height ?? 500;
+            int thoughtX = _thoughtProcessWindow?.Position.X ?? 0;
+            int thoughtY = _thoughtProcessWindow?.Position.Y ?? 0;
+            bool thoughtWasOpen = _thoughtProcessWindow?.IsVisible ?? false;
+            
+            await viewModel.SaveWindowStateAsync(
+                mainX,
+                mainY,
+                mainWidth,
+                mainHeight,
+                thoughtX,
+                thoughtY,
+                thoughtWidth,
+                thoughtHeight,
+                thoughtWasOpen
+            );
         }
     }
 
-    private void ShowThoughtProcess_Click(object? sender, RoutedEventArgs e)
+    private async void ShowThoughtProcess_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel viewModel)
         {
@@ -368,6 +392,8 @@ public partial class MainWindow : Window
                 {
                     DataContext = new ThoughtProcessViewModel(viewModel.Logger)
                 };
+                
+                await RestoreThoughtProcessWindowStateAsync();
             }
 
             if (_thoughtProcessWindow.IsVisible)
@@ -377,6 +403,30 @@ public partial class MainWindow : Window
             else
             {
                 _thoughtProcessWindow.Show();
+            }
+        }
+    }
+
+    private async Task RestoreThoughtProcessWindowStateAsync()
+    {
+        if (_thoughtProcessWindow == null)
+            return;
+
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            var config = await viewModel.GetConfigAsync();
+            
+            if (config.ThoughtWindowWidth > 0 && config.ThoughtWindowHeight > 0)
+            {
+                _thoughtProcessWindow.Width = config.ThoughtWindowWidth;
+                _thoughtProcessWindow.Height = config.ThoughtWindowHeight;
+            }
+
+            if (config.ThoughtWindowX != 0 || config.ThoughtWindowY != 0)
+            {
+                _thoughtProcessWindow.Position = new PixelPoint(
+                    (int)config.ThoughtWindowX, 
+                    (int)config.ThoughtWindowY);
             }
         }
     }

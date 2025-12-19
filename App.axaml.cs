@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Quade.Services;
@@ -67,6 +68,25 @@ public partial class App : Application
             {
                 DataContext = viewModel
             };
+
+            bool hasCustomPosition = config.MainWindowX != 0 || config.MainWindowY != 0;
+            bool hasCustomSize = config.MainWindowWidth > 0 && config.MainWindowHeight > 0;
+
+            if (hasCustomPosition || hasCustomSize)
+            {
+                desktop.MainWindow.WindowStartupLocation = WindowStartupLocation.Manual;
+                
+                if (hasCustomSize)
+                {
+                    desktop.MainWindow.Width = config.MainWindowWidth;
+                    desktop.MainWindow.Height = config.MainWindowHeight;
+                }
+
+                if (hasCustomPosition)
+                {
+                    desktop.MainWindow.Position = new PixelPoint((int)config.MainWindowX, (int)config.MainWindowY);
+                }
+            }
 
             desktop.MainWindow.Show();
         }
