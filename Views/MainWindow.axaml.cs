@@ -69,6 +69,24 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void EditButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is Message message)
+        {
+            if (DataContext is not MainWindowViewModel viewModel)
+                return;
+
+            if (message.IsEditing)
+            {
+                await viewModel.SubmitEditedMessageAsync(message);
+            }
+            else
+            {
+                viewModel.StartEditingMessage(message);
+            }
+        }
+    }
+
     private void BuildModelMenu()
     {
         if (DataContext is not MainWindowViewModel viewModel)

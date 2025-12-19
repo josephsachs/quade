@@ -21,6 +21,7 @@ public class MainWindowViewModel : ViewModelBase
     private ConversationMode _currentMode = ConversationMode.Empower;
     private string _selectedModelId = string.Empty;
     private string _errorMessage = string.Empty;
+    private Message? _editingMessage;
 
     public ObservableCollection<Message> Messages { get; } = new();
     public ObservableCollection<ModelInfo> AvailableModels { get; } = new();
@@ -35,7 +36,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public bool IsSending
     {
-        get => _isSending;
+        get => _isSending || _editingMessage != null;
         set => this.RaiseAndSetIfChanged(ref _isSending, value);
     }
 
@@ -131,6 +132,81 @@ public class MainWindowViewModel : ViewModelBase
         
         if (!AvailableModels.Any(m => m.Id == SelectedModelId))
             throw new Exception("Selected model is not available. Please select a valid model from the Model menu.");
+    }
+
+    public void StartEditingMessage(Message message)
+    {
+        if (_editingMessage != null)
+        {
+            _editingMessage.IsEditing = false;
+        }
+
+        _editingMessage = message;
+        message.IsEditing = true;
+        
+        this.RaisePropertyChanged(nameof(IsSending));
+    }
+
+    public async Task SubmitEditedMessageAsync(Message message)
+    {
+        if (_editingMessage != message)
+            return;
+
+        var index = Messages.IndexOf(message);
+        if (index == -1)
+            return;
+
+        var messagesToRemove = Messages.Skip(index + 1).ToList();
+        foreach (var msg in messagesToRemove)
+        {
+            Messages.Remove(msg);
+        }
+
+        var editedContent = message.Content;
+        
+        message.IsEditing = false;
+        message.IsFocused = false;
+        _editingMessage = null;
+        this.RaisePropertyChanged(nameof(IsSending));
+
+        var chatMessages = Messages.Take(index).ToList();
+        _chatService.LoadConversation(chatMessages);
+
+        IsSending = true;
+        ErrorMessage = string.Empty;
+
+        var placeholder = new Message
+        {
+            Content = "...",
+            IsUser = false,
+            Mode = CurrentMode,
+            IsPending = true,
+            Timestamp = DateTime.Now
+        };
+        Messages.Add(placeholder);
+
+        try
+        {
+            var (response, newMode) = await _chatService.SendMessageAsync(editedContent);
+            
+            placeholder.Content = response.Content;
+            placeholder.IsPending = false;
+            placeholder.Mode = newMode;
+            placeholder.Timestamp = response.Timestamp;
+            
+            CurrentMode = newMode;
+        }
+        catch (Exception ex)
+        {
+            Messages.Remove(placeholder);
+            Messages.Remove(message);
+            ErrorMessage = ex.Message;
+            InputMessage = editedContent;
+        }
+        finally
+        {
+            IsSending = false;
+        }
     }
 
     public async Task<bool> TrySendMessageAsync(string messageText)

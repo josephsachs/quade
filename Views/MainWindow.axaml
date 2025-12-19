@@ -78,19 +78,33 @@
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"/>
                                     </Border>
-                                    <TextBox Grid.Column="1"
-                                            Grid.Row="0"
-                                            Text="{Binding Content}"
-                                            TextWrapping="Wrap"
-                                            IsReadOnly="True"
-                                            BorderThickness="0"
-                                            Background="Transparent"
-                                            Padding="0"
-                                            Margin="0,0,0,5">
-                                        <i:Interaction.Behaviors>
-                                            <behaviors:PendingMessageBehavior />
-                                        </i:Interaction.Behaviors>
-                                    </TextBox>
+                                    
+                                    <Grid Grid.Column="1" Grid.Row="0" Margin="0,0,0,5">
+                                        <TextBox Text="{Binding Content}"
+                                                TextWrapping="Wrap"
+                                                IsReadOnly="{Binding !IsEditing}"
+                                                BorderThickness="0"
+                                                Background="Transparent"
+                                                Padding="0">
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:PendingMessageBehavior />
+                                                <behaviors:FocusTrackingBehavior />
+                                            </i:Interaction.Behaviors>
+                                        </TextBox>
+                                        
+                                        <Button HorizontalAlignment="Right"
+                                                VerticalAlignment="Top"
+                                                Margin="5"
+                                                Padding="8"
+                                                Background="Transparent"
+                                                Focusable="False"
+                                                Click="EditButton_Click"
+                                                Tag="{Binding}"
+                                                IsVisible="{Binding ShowEditButton}">
+                                            <TextBlock Text="{Binding EditButtonIcon}" FontSize="14"/>
+                                        </Button>
+                                    </Grid>
+                                    
                                     <TextBlock Grid.Column="1"
                                                Grid.Row="1"
                                                Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"

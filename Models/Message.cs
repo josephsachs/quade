@@ -10,6 +10,8 @@ public class Message : ReactiveObject
     private ConversationMode _mode;
     private DateTime _timestamp = DateTime.Now;
     private bool _isPending;
+    private bool _isEditing;
+    private bool _isFocused;
 
     public string Content
     {
@@ -53,6 +55,31 @@ public class Message : ReactiveObject
             this.RaisePropertyChanged(nameof(IconText));
         }
     }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isEditing, value);
+            this.RaisePropertyChanged(nameof(ShowEditButton));
+            this.RaisePropertyChanged(nameof(EditButtonIcon));
+        }
+    }
+
+    public bool IsFocused
+    {
+        get => _isFocused;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isFocused, value);
+            this.RaisePropertyChanged(nameof(ShowEditButton));
+        }
+    }
+
+    public bool ShowEditButton => IsUser && (IsFocused || IsEditing);
+
+    public string EditButtonIcon => IsEditing ? "✓" : "✏️";
 
     public string IconText => IsPending ? "" : (IsUser ? "私" : Mode switch
     {
