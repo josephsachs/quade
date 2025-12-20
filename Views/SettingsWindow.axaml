@@ -1,0 +1,106 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Quade.ViewModels"
+        x:Class="Quade.Views.SettingsWindow"
+        x:DataType="vm:SettingsWindowViewModel"
+        Title="Settings"
+        Width="600" Height="400"
+        WindowStartupLocation="CenterOwner">
+
+    <TabControl>
+        <TabItem Header="API Keys">
+            <ScrollViewer Padding="20">
+                <StackPanel Spacing="20">
+                    
+                    <!-- Anthropic -->
+                    <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Anthropic" FontWeight="Bold" FontSize="14"/>
+                            
+                            <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasAnthropicKey}">
+                                <TextBlock Grid.Column="0" Text="Current Key:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="1" 
+                                          Text="{Binding AnthropicKeyDisplay}" 
+                                          VerticalAlignment="Center"
+                                          FontFamily="Consolas,Courier New,monospace"/>
+                                <Button Grid.Column="2" 
+                                       Content="Delete" 
+                                       Click="DeleteAnthropicKey_Click"
+                                       Margin="10,0,0,0"/>
+                            </Grid>
+                            
+                            <StackPanel Spacing="10" IsVisible="{Binding !HasAnthropicKey}">
+                                <TextBox Text="{Binding AnthropicKeyInput}" 
+                                        Watermark="sk-ant-..."
+                                        PasswordChar="•"/>
+                                <Button Content="Add" 
+                                       Click="AddAnthropicKey_Click"
+                                       HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- OpenAI -->
+                    <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="OpenAI" FontWeight="Bold" FontSize="14"/>
+                            
+                            <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasOpenaiKey}">
+                                <TextBlock Grid.Column="0" Text="Current Key:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="1" 
+                                          Text="{Binding OpenaiKeyDisplay}" 
+                                          VerticalAlignment="Center"
+                                          FontFamily="Consolas,Courier New,monospace"/>
+                                <Button Grid.Column="2" 
+                                       Content="Delete" 
+                                       Click="DeleteOpenaiKey_Click"
+                                       Margin="10,0,0,0"/>
+                            </Grid>
+                            
+                            <StackPanel Spacing="10" IsVisible="{Binding !HasOpenaiKey}">
+                                <TextBox Text="{Binding OpenaiKeyInput}" 
+                                        Watermark="sk-..."
+                                        PasswordChar="•"/>
+                                <Button Content="Add" 
+                                       Click="AddOpenaiKey_Click"
+                                       HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Anlatan -->
+                    <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Anlatan" FontWeight="Bold" FontSize="14"/>
+                            
+                            <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasAnlatanKey}">
+                                <TextBlock Grid.Column="0" Text="Current Key:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="1" 
+                                          Text="{Binding AnlatanKeyDisplay}" 
+                                          VerticalAlignment="Center"
+                                          FontFamily="Consolas,Courier New,monospace"/>
+                                <Button Grid.Column="2" 
+                                       Content="Delete" 
+                                       Click="DeleteAnlatanKey_Click"
+                                       Margin="10,0,0,0"/>
+                            </Grid>
+                            
+                            <StackPanel Spacing="10" IsVisible="{Binding !HasAnlatanKey}">
+                                <TextBox Text="{Binding AnlatanKeyInput}" 
+                                        Watermark="Enter API key..."
+                                        PasswordChar="•"/>
+                                <Button Content="Add" 
+                                       Click="AddAnlatanKey_Click"
+                                       HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+        
+        <!-- Placeholder for future settings tabs -->
+        
+    </TabControl>
+</Window>

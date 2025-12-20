@@ -52,12 +52,6 @@ public class ConfigService
         }
     }
 
-    public async Task<bool> HasApiKeyAsync()
-    {
-        var config = await LoadConfigAsync();
-        return !string.IsNullOrWhiteSpace(config.ApiKey);
-    }
-
     public async Task<List<ModelInfo>> LoadModelsAsync()
     {
         if (!File.Exists(_modelsPath))

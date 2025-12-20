@@ -331,6 +331,19 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void ShowSettings_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            var settingsWindow = new SettingsWindow
+            {
+                DataContext = new SettingsWindowViewModel(viewModel.CredentialsService, viewModel.GetApiClient())
+            };
+            
+            await settingsWindow.ShowDialog(this);
+        }
+    }
+
     private void Quit_Click(object? sender, RoutedEventArgs e)
     {
         Close();

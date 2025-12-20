@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Quade.Views.WelcomeWindow"
+        Title="Welcome to Quade"
+        Width="500" Height="250"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
+
+    <StackPanel Margin="20" Spacing="15">
+        <TextBlock Text="Welcome to Quade"
+                   FontSize="18"
+                   FontWeight="Bold"/>
+        
+        <TextBlock Text="To use Quade, you'll need an Anthropic API key."
+                   TextWrapping="Wrap"/>
+        
+        <TextBlock Text="Add your API key via:"
+                   TextWrapping="Wrap"
+                   FontWeight="SemiBold"
+                   Margin="0,10,0,0"/>
+        
+        <TextBlock Text="Menu → Settings → API Keys"
+                   TextWrapping="Wrap"
+                   Margin="20,0,0,0"
+                   FontFamily="Consolas,Courier New,monospace"/>
+        
+        <Button Content="Close"
+                Click="OnCloseClick"
+                HorizontalAlignment="Right"
+                Margin="0,20,0,0"/>
+    </StackPanel>
+</Window>

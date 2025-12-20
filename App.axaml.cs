@@ -22,6 +22,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var configService = new ConfigService();
+            var credentialsService = new CredentialsService();
             var apiClient = new ApiClient();
             var logger = new ThoughtProcessLogger();
             var conversationService = new ConversationService();
@@ -29,41 +30,31 @@ public partial class App : Application
             var modeDetector = new ModeDetector(apiClient, logger);
             var chatService = new ChatService(apiClient, modeDetector, configService, logger, contextBuilder);
 
-            var hasApiKey = await configService.HasApiKeyAsync();
+            var hasApiKey = await credentialsService.HasApiKeyAsync(CredentialsService.ANTHROPIC);
             
             if (!hasApiKey)
             {
-                var setupWindow = new ApiKeySetupWindow
-                {
-                    DataContext = new ApiKeySetupViewModel(configService, apiClient)
-                };
-                
-                var tcs = new TaskCompletionSource<bool>();
-                setupWindow.Closed += (s, e) => tcs.SetResult(true);
-                
-                setupWindow.Show();
-                await tcs.Task;
-                
-                var hasKeyNow = await configService.HasApiKeyAsync();
-                if (!hasKeyNow)
-                {
-                    desktop.Shutdown();
-                    return;
-                }
+                var welcomeWindow = new WelcomeWindow();
+                welcomeWindow.Show();
             }
 
-            var config = await configService.LoadConfigAsync();
-            apiClient.SetApiKey(config.ApiKey);
+            var anthropicKey = await credentialsService.GetApiKeyAsync(CredentialsService.ANTHROPIC);
+            if (!string.IsNullOrWhiteSpace(anthropicKey))
+            {
+                apiClient.SetApiKey(anthropicKey);
+            }
 
             var viewModel = new MainWindowViewModel(
                 chatService, 
                 configService, 
                 apiClient, 
                 logger, 
-                conversationService);
+                conversationService,
+                credentialsService);
 
             await viewModel.InitializeAsync();
 
+            var config = await configService.LoadConfigAsync();
             desktop.MainWindow = new MainWindow
             {
                 DataContext = viewModel
