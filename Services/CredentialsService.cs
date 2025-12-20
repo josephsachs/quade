@@ -113,6 +113,8 @@ public class CredentialsService
     {
         using var aes = Aes.Create();
         aes.Key = _encryptionKey;
+        aes.Mode = CipherMode.CBC;
+        aes.Padding = PaddingMode.PKCS7;
         aes.GenerateIV();
 
         using var encryptor = aes.CreateEncryptor();
@@ -139,6 +141,8 @@ public class CredentialsService
         using var aes = Aes.Create();
         aes.Key = _encryptionKey;
         aes.IV = iv;
+        aes.Mode = CipherMode.CBC;
+        aes.Padding = PaddingMode.PKCS7;
 
         using var decryptor = aes.CreateDecryptor();
         var plaintextBytes = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
