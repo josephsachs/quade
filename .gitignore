@@ -97,6 +97,7 @@ StyleCopReport.xml
 # Credential files - NEVER commit these
 credential.ini
 credentials.ini
+credentials.enc
 config.ini
 appsettings.local.json
 appsettings.*.local.json

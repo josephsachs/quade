@@ -15,6 +15,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly ApiClient _apiClient;
     private readonly ThoughtProcessLogger _logger;
     private readonly ConversationService _conversationService;
+    private readonly CredentialsService _credentialsService;
 
     private string _inputMessage = string.Empty;
     private bool _isSending;
@@ -27,6 +28,9 @@ public class MainWindowViewModel : ViewModelBase
     public ObservableCollection<ModelInfo> AvailableModels { get; } = new();
     
     public ThoughtProcessLogger Logger => _logger;
+    public CredentialsService CredentialsService => _credentialsService;
+    
+    public ApiClient GetApiClient() => _apiClient;
 
     public string InputMessage
     {
@@ -63,13 +67,15 @@ public class MainWindowViewModel : ViewModelBase
         ConfigService configService,
         ApiClient apiClient,
         ThoughtProcessLogger logger,
-        ConversationService conversationService)
+        ConversationService conversationService,
+        CredentialsService credentialsService)
     {
         _chatService = chatService;
         _configService = configService;
         _apiClient = apiClient;
         _logger = logger;
         _conversationService = conversationService;
+        _credentialsService = credentialsService;
     }
 
     public async Task InitializeAsync()
