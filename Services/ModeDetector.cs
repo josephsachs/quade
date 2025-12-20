@@ -11,19 +11,19 @@ public class ModeDetector
     private readonly ThoughtProcessLogger _logger;
     private const string MODE_SELECTOR_MODEL = "claude-3-5-haiku-20241022";
 
-    private const string MODE_SELECT_IS_QUESTION = @"Is the message a question?";
+    private const string MODE_SELECT_IS_QUESTION = @"Is the user's message a question?";
 
-    private const string MODE_SELECT_IS_STATEMENT_CLEAR = @"Is the statement clear enough to respond to with confidence?";
+    private const string MODE_SELECT_IS_STATEMENT_CLEAR = @"Is the user's statement clear enough to respond to with confidence?";
 
-    private const string MODE_SELECT_IS_INFORMATIONAL = @"Is the question informational?";
+    private const string MODE_SELECT_IS_INFORMATIONAL = @"Is the user's question informational?";
 
-    private const string MODE_SELECT_IS_PERSONAL = @"Is the statement personal?";
+    private const string MODE_SELECT_IS_PERSONAL = @"Is the user's statement personal?";
 
-    private const string MODE_SELECT_IS_CASUAL = @"Is the statement casual?";
+    private const string MODE_SELECT_IS_CASUAL = @"Is the user's statement casual?";
 
-    private const string MODE_SELECT_IS_PLAN = @"Is the statement a plan?";
+    private const string MODE_SELECT_IS_PLAN = @"Does the user's statement a plan or course of action?";
 
-    private const string MODE_SELECT_IS_REASONABLE = @"Is the statement reasonable and valid?";
+    private const string MODE_SELECT_IS_REASONABLE = @"Is the user's statement reasonable and safe?";
 
     public ModeDetector(ApiClient apiClient, ThoughtProcessLogger logger)
     {
@@ -31,20 +31,32 @@ public class ModeDetector
         _logger = logger;
     }
 
-    private async Task<string> ModeQuery(List<Quade.Models.Message> message, string prompt) {
-        _logger.LogModeDetectionStart();
+    private async Task<bool> ModeQuery(List<Quade.Models.Message> message, string prompt) {
+        //_logger.LogModeDetectionStart();
         _logger.LogModePrompt(prompt);
 
-        var response = await _apiClient.SendMessageAsync(
-            message, 
-            $"{prompt} Respond with ONLY a YES or NO: ",
-            MODE_SELECTOR_MODEL,
-            maxTokens: 1
-        );
+        for (var attempts = 0; attempts < 4; attempts++) {
+            var response = await _apiClient.SendMessageAsync(
+                message, 
+                $"{prompt} Answer the question with a single word, YES or NO.",
+                MODE_SELECTOR_MODEL,
+                maxTokens: 1
+            );
 
-        _logger.LogModeResponse(response);
+            _logger.LogModeResponse(response);
 
-        return response;
+            var result = response?.ToUpperInvariant() switch {
+                "YES" => (bool?)true,
+                "NO" => (bool?)false,
+                _ => null
+            };
+
+            if (result.HasValue) return result.Value;
+        }
+
+        _logger.LogModeResponse("Tried three times without valid response");
+
+        return false;
     }
 
     public async Task<ConversationMode> DetectMode(List<Message> recentMessages)
@@ -58,82 +70,62 @@ public class ModeDetector
 
         var isQuestion = await ModeQuery(lastMessage, MODE_SELECT_IS_QUESTION);
 
-        if (isQuestion.Contains("Y")) {
-            var isInformational = await ModeQuery(lastMessage, MODE_SELECT_IS_INFORMATIONAL);
-
-            if (isInformational.Contains("Y")) {
-                var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
-
-                if (isClear.Contains("Y")) {
-                    return ConversationMode.Opine;
-                } else {
-                    return ConversationMode.Investigate;
-                }
-            } else {
-                return ConversationMode.Opine;
-            }
+        if (isQuestion) {
+            return await HandleQuestion(lastMessage);
 
         } else {
             var isCasual = await ModeQuery(lastMessage, MODE_SELECT_IS_CASUAL);
 
-            if (isCasual.Contains("Y")) {
-                var isPersonal = await ModeQuery(lastMessage, MODE_SELECT_IS_PERSONAL);
+            return isCasual ? await HandleCasual(lastMessage) : await HandleNonCasual(lastMessage);
+        }
+    }
 
-                if (isPersonal.Contains("Y")) {
-                    var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
+    public async Task<ConversationMode> HandleQuestion(List<Message> lastMessage) {
+        var isInformational = await ModeQuery(lastMessage, MODE_SELECT_IS_INFORMATIONAL);
 
-                    if (isReasonable.Contains("Y")) {
-                        return ConversationMode.Empower;
-                    } else {
-                        return ConversationMode.Opine;
-                    }
-                } else {
-                    // Not personal
-                    var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
+        if (isInformational) {
+            var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
 
-                    if (isClear.Contains("Y")) {
-                        var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
+            return isClear ? ConversationMode.Opine : ConversationMode.Investigate;
 
-                        if (isReasonable.Contains("Y")) {
-                            return ConversationMode.Opine;
-                        } else {
-                            return ConversationMode.Critique;
-                        }
-                    } else {
-                        return ConversationMode.Investigate;
-                    }
-                }
-            } else {
-                // Not a casual statement
-                var isPlan = await ModeQuery(lastMessage, MODE_SELECT_IS_PLAN);
+        } else {
+            return ConversationMode.Opine;
+        }
+    }
 
-                if (isPlan.Contains("Y")) {
-                    var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
+    public async Task<ConversationMode> HandleCasual(List<Message> lastMessage) {
+        var isPersonal = await ModeQuery(lastMessage, MODE_SELECT_IS_PERSONAL);
+        var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
 
-                    if (isClear.Contains("Y")) {
-                        return ConversationMode.Investigate;
-                    } else {
-                        var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
+        if (isPersonal) {
+            return isReasonable ? ConversationMode.Empower : ConversationMode.Opine;
 
-                        if (isReasonable.Contains("Y")) {
-                            return ConversationMode.Empower;
-                        } else {
-                            return ConversationMode.Critique;
-                        }
-                    }
-                } else {
-                    // Not a plan
-                    var needMoreInfo = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
+        } else {
+            var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
 
-                    if (needMoreInfo.Contains("Y")) {
-                        return ConversationMode.Opine;
-                    } else {
-                        return ConversationMode.Investigate;
-
-                        
-                    }
-                }
+            if (!isClear) {
+                return ConversationMode.Investigate;
             }
+
+            return isReasonable ? ConversationMode.Opine : ConversationMode.Critique;
+        }
+    }
+
+    public async Task<ConversationMode> HandleNonCasual(List<Message> lastMessage) {
+        var isPlan = await ModeQuery(lastMessage, MODE_SELECT_IS_PLAN);
+        var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
+
+        if (isPlan) {
+            if (isClear) {
+                return ConversationMode.Investigate;
+            
+            } else {
+                var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
+
+                return isReasonable ? ConversationMode.Empower : ConversationMode.Critique;
+            }
+        } else {
+            return isClear ? ConversationMode.Opine : ConversationMode.Investigate;
         }
     }
 
