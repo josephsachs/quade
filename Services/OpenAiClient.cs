@@ -29,41 +29,21 @@ public class OpenAiClient : IModelProvider
 
     public async Task<List<ModelInfo>> GetAvailableModelsAsync()
     {
-        var response = await _httpClient.GetAsync("https://api.openai.com/v1/models");
-        
-        var content = await response.Content.ReadAsStringAsync();
-        
-        response.EnsureSuccessStatusCode();
-        
-        var result = JsonSerializer.Deserialize<ModelsResponse>(content);
-        
         var models = new List<ModelInfo>();
         
-        if (result?.Data == null)
-            return models;
-
-        foreach (var model in result.Data)
+        foreach (var (modelId, capabilities) in OpenAiModelRegistry.GetAllModels())
         {
-            var capabilities = OpenAiModelRegistry.GetCapabilities(model.Id);
-            
-            if (capabilities == null)
-                continue;
-
             models.Add(new ModelInfo
             {
-                Id = model.Id,
-                DisplayName = FormatDisplayName(model.Id),
+                Id = modelId,
+                DisplayName = FormatDisplayName(modelId),
                 Type = "model",
-                CreatedAt = DateTimeOffset.FromUnixTimeSeconds(model.Created).DateTime,
+                CreatedAt = DateTime.UtcNow,
                 Categories = new List<string>(capabilities.Categories)
             });
         }
         
-        return models
-            .GroupBy(m => m.DisplayName)
-            .Select(g => g.OrderByDescending(m => m.CreatedAt).First())
-            .OrderByDescending(m => m.CreatedAt)
-            .ToList();
+        return await Task.FromResult(models);
     }
 
     public async Task<string> SendMessageAsync(
@@ -100,36 +80,17 @@ public class OpenAiClient : IModelProvider
             content = m.Content
         }));
 
-        var actualMaxTokens = Math.Max(config.MaxTokens, 16);
-        
-        object request;
-        if (capabilities.ParameterFormat == OpenAiParameterFormat.Reasoning)
+        var request = new
         {
-            request = new
-            {
-                model = config.Model,
-                max_completion_tokens = actualMaxTokens,
-                messages = apiMessages.ToArray()
-            };
-        }
-        else
-        {
-            request = new
-            {
-                model = config.Model,
-                max_tokens = actualMaxTokens,
-                messages = apiMessages.ToArray()
-            };
-        }
+            model = config.Model,
+            max_tokens = config.MaxTokens,
+            messages = apiMessages.ToArray()
+        };
 
         var json = JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        
-        Console.WriteLine($"Request content: {json}");
 
         var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
-
-        Console.WriteLine($"Raw response: {await response.Content.ReadAsStringAsync()}");
         
         if (!response.IsSuccessStatusCode)
         {
@@ -150,30 +111,17 @@ public class OpenAiClient : IModelProvider
     {
         return modelId switch
         {
-            var id when id.Contains("gpt-4o") => "GPT-4o",
-            var id when id.Contains("gpt-4-turbo") => "GPT-4 Turbo",
-            var id when id.Contains("gpt-4") => "GPT-4",
-            var id when id.Contains("gpt-3.5-turbo") => "GPT-3.5 Turbo",
-            var id when id.Contains("text-embedding-3-large") => "Text Embedding 3 Large",
-            var id when id.Contains("text-embedding-3-small") => "Text Embedding 3 Small",
-            var id when id.Contains("text-embedding-ada-002") => "Text Embedding Ada 002",
+            "gpt-4.1" => "GPT-4.1",
+            "gpt-4.1-mini" => "GPT-4.1 Mini",
+            "gpt-4.1-nano" => "GPT-4.1 Nano",
+            "gpt-4o" => "GPT-4o",
+            "gpt-4o-mini" => "GPT-4o Mini",
+            "gpt-3.5-turbo" => "GPT-3.5 Turbo",
+            "text-embedding-3-large" => "Text Embedding 3 Large",
+            "text-embedding-3-small" => "Text Embedding 3 Small",
+            "text-embedding-ada-002" => "Text Embedding Ada 002",
             _ => modelId
         };
-    }
-
-    private class ModelsResponse
-    {
-        [JsonPropertyName("data")]
-        public List<OpenAiModel> Data { get; set; } = new();
-    }
-
-    private class OpenAiModel
-    {
-        [JsonPropertyName("id")]
-        public string Id { get; set; } = string.Empty;
-        
-        [JsonPropertyName("created")]
-        public long Created { get; set; }
     }
 
     private class ChatCompletionResponse
