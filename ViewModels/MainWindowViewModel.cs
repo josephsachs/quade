@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly ChatService _chatService;
     private readonly ConfigService _configService;
     private readonly ApiClient _apiClient;
+    private readonly OpenAiClient _openAiClient;
     private readonly ThoughtProcessLogger _logger;
     private readonly ConversationService _conversationService;
     private readonly CredentialsService _credentialsService;
@@ -21,6 +23,8 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isSending;
     private ConversationMode _currentMode = ConversationMode.Empower;
     private string _selectedModelId = string.Empty;
+    private string _thoughtModel = string.Empty;
+    private string _memoryModel = string.Empty;
     private string _errorMessage = string.Empty;
     private Message? _editingMessage;
 
@@ -31,6 +35,7 @@ public class MainWindowViewModel : ViewModelBase
     public CredentialsService CredentialsService => _credentialsService;
     
     public ApiClient GetApiClient() => _apiClient;
+    public OpenAiClient GetOpenAiClient() => _openAiClient;
 
     public string InputMessage
     {
@@ -56,6 +61,24 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedModelId, value);
     }
 
+    public string ThoughtModel
+    {
+        get => _thoughtModel;
+        set => this.RaiseAndSetIfChanged(ref _thoughtModel, value);
+    }
+
+    public string MemoryModel
+    {
+        get => _memoryModel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _memoryModel, value);
+            this.RaisePropertyChanged(nameof(HasMemoryConfigured));
+        }
+    }
+
+    public bool HasMemoryConfigured => !string.IsNullOrEmpty(MemoryModel);
+
     public string ErrorMessage
     {
         get => _errorMessage;
@@ -66,6 +89,7 @@ public class MainWindowViewModel : ViewModelBase
         ChatService chatService,
         ConfigService configService,
         ApiClient apiClient,
+        OpenAiClient openAiClient,
         ThoughtProcessLogger logger,
         ConversationService conversationService,
         CredentialsService credentialsService)
@@ -73,6 +97,7 @@ public class MainWindowViewModel : ViewModelBase
         _chatService = chatService;
         _configService = configService;
         _apiClient = apiClient;
+        _openAiClient = openAiClient;
         _logger = logger;
         _conversationService = conversationService;
         _credentialsService = credentialsService;
@@ -97,21 +122,42 @@ public class MainWindowViewModel : ViewModelBase
 
         var config = await _configService.LoadConfigAsync();
         SelectedModelId = config.ConversationalModel;
+        ThoughtModel = config.ThoughtModel;
+        MemoryModel = config.MemoryModel;
     }
 
     public async Task RefreshModelsAsync()
     {
         try
         {
-            var models = await _apiClient.GetAvailableModelsAsync();
+            var allModels = new List<ModelInfo>();
+            
+            var anthropicModels = await _apiClient.GetAvailableModelsAsync();
+            foreach (var model in anthropicModels)
+            {
+                model.Categories = new List<string> { "chat", "thought" };
+            }
+            allModels.AddRange(anthropicModels);
+            
+            var hasOpenAiKey = await _credentialsService.HasApiKeyAsync(CredentialsService.OPENAI);
+            if (hasOpenAiKey)
+            {
+                var openAiKey = await _credentialsService.GetApiKeyAsync(CredentialsService.OPENAI);
+                if (!string.IsNullOrWhiteSpace(openAiKey))
+                {
+                    _openAiClient.SetApiKey(openAiKey);
+                    var openAiModels = await _openAiClient.GetAvailableModelsAsync();
+                    allModels.AddRange(openAiModels);
+                }
+            }
             
             AvailableModels.Clear();
-            foreach (var model in models)
+            foreach (var model in allModels)
             {
                 AvailableModels.Add(model);
             }
             
-            await _configService.SaveModelsAsync(models);
+            await _configService.SaveModelsAsync(allModels);
         }
         catch (Exception ex)
         {
@@ -119,12 +165,30 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public async Task SelectModelAsync(string modelId)
+    public async Task SelectChatModelAsync(string modelId)
     {
         SelectedModelId = modelId;
         
         var config = await _configService.LoadConfigAsync();
         config.ConversationalModel = modelId;
+        await _configService.SaveConfigAsync(config);
+    }
+
+    public async Task SelectThoughtModelAsync(string modelId)
+    {
+        ThoughtModel = modelId;
+        
+        var config = await _configService.LoadConfigAsync();
+        config.ThoughtModel = modelId;
+        await _configService.SaveConfigAsync(config);
+    }
+
+    public async Task SelectMemoryModelAsync(string modelId)
+    {
+        MemoryModel = modelId;
+        
+        var config = await _configService.LoadConfigAsync();
+        config.MemoryModel = modelId;
         await _configService.SaveConfigAsync(config);
     }
 
