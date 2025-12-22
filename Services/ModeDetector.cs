@@ -11,15 +11,17 @@ public class ModeDetector
     private readonly ThoughtProcessLogger _logger;
     private const string MODE_SELECTOR_MODEL = "claude-3-5-haiku-20241022";
 
-    private const string MODE_SELECT_IS_QUESTION = @"Is the user's message a question?";
+    private const string MODE_SELECT_IS_QUESTION = @"Is the user asking a question?";
 
-    private const string MODE_SELECT_IS_STATEMENT_CLEAR = @"Is the user's statement clear enough to respond to with confidence?";
+    private const string MODE_SELECT_IS_STATEMENT_CLEAR = @"Is the user's meaning clear enough to respond to with confidence?";
 
     private const string MODE_SELECT_IS_INFORMATIONAL = @"Is the user's question informational?";
 
     private const string MODE_SELECT_IS_PERSONAL = @"Is the user's statement personal?";
 
     private const string MODE_SELECT_IS_CASUAL = @"Is the user's statement casual?";
+
+    private const string MODE_SELECT_IS_JOKING = @"Is the user joking or being silly?";
 
     private const string MODE_SELECT_IS_PLAN = @"Does the user's statement a plan or course of action?";
 
@@ -94,6 +96,12 @@ public class ModeDetector
     }
 
     public async Task<ConversationMode> HandleCasual(List<Message> lastMessage) {
+        var isJoking = await ModeQuery(lastMessage, MODE_SELECT_IS_JOKING);
+
+        if (isJoking) {
+            return ConversationMode.Amuse;
+        }
+
         var isPersonal = await ModeQuery(lastMessage, MODE_SELECT_IS_PERSONAL);
         var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
 
@@ -144,6 +152,9 @@ public class ModeDetector
             
             ConversationMode.Critique => 
                 "The user is expressing something dubious. Challenge this, play devil's advocate, and/or apply tough-minded critical analysis. The idea needs, at minimum, to be approached with skepticism, and might require clear pushback.",
+
+            ConversationMode.Amuse => 
+                "The user is being humorous. Respond unseriously, with lightness, irony, silliness or jokes.",
             
             _ => "Respond as you see fit."
         };

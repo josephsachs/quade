@@ -87,6 +87,7 @@ public class Message : ReactiveObject
         ConversationMode.Investigate => "究",
         ConversationMode.Opine => "思",
         ConversationMode.Critique => "批",
+        ConversationMode.Amuse => "楽",
         _ => "?"
     });
 
