@@ -8,7 +8,7 @@ namespace Quade.ViewModels;
 public class SettingsWindowViewModel : ViewModelBase
 {
     private readonly CredentialsService _credentialsService;
-    private readonly ApiClient _apiClient;
+    private readonly AnthropicClient _anthropicClient;
 
     private string _anthropicKeyDisplay = "(not set)";
     private string _openaiKeyDisplay = "(not set)";
@@ -43,7 +43,8 @@ public class SettingsWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _anlatanKeyDisplay, value);
     }
 
-    public string SupabaseKeyDisplay {
+    public string SupabaseKeyDisplay
+    {
         get => _supabaseKeyDisplay;
         set => this.RaiseAndSetIfChanged(ref _supabaseKeyDisplay, value);
     }
@@ -96,10 +97,10 @@ public class SettingsWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _supabaseKeyInput, value);
     }
 
-    public SettingsWindowViewModel(CredentialsService credentialsService, ApiClient apiClient)
+    public SettingsWindowViewModel(CredentialsService credentialsService, AnthropicClient anthropicClient)
     {
         _credentialsService = credentialsService;
-        _apiClient = apiClient;
+        _anthropicClient = anthropicClient;
     }
 
     public async Task LoadKeysAsync()
@@ -128,7 +129,7 @@ public class SettingsWindowViewModel : ViewModelBase
 
         if (provider == CredentialsService.ANTHROPIC)
         {
-            _apiClient.SetApiKey(keyInput);
+            _anthropicClient.SetApiKey(keyInput);
         }
 
         ClearInput(provider);

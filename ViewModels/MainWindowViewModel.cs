@@ -13,7 +13,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     private readonly ChatService _chatService;
     private readonly ConfigService _configService;
-    private readonly ApiClient _apiClient;
+    private readonly AnthropicClient _anthropicClient;
     private readonly OpenAiClient _openAiClient;
     private readonly ThoughtProcessLogger _logger;
     private readonly ConversationService _conversationService;
@@ -34,7 +34,7 @@ public class MainWindowViewModel : ViewModelBase
     public ThoughtProcessLogger Logger => _logger;
     public CredentialsService CredentialsService => _credentialsService;
     
-    public ApiClient GetApiClient() => _apiClient;
+    public AnthropicClient GetAnthropicClient() => _anthropicClient;
     public OpenAiClient GetOpenAiClient() => _openAiClient;
 
     public string InputMessage
@@ -88,7 +88,7 @@ public class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(
         ChatService chatService,
         ConfigService configService,
-        ApiClient apiClient,
+        AnthropicClient anthropicClient,
         OpenAiClient openAiClient,
         ThoughtProcessLogger logger,
         ConversationService conversationService,
@@ -96,7 +96,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         _chatService = chatService;
         _configService = configService;
-        _apiClient = apiClient;
+        _anthropicClient = anthropicClient;
         _openAiClient = openAiClient;
         _logger = logger;
         _conversationService = conversationService;
@@ -132,7 +132,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             var allModels = new List<ModelInfo>();
             
-            var anthropicModels = await _apiClient.GetAvailableModelsAsync();
+            var anthropicModels = await _anthropicClient.GetAvailableModelsAsync();
             foreach (var model in anthropicModels)
             {
                 model.Categories = new List<string> { "chat", "thought" };

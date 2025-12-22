@@ -7,7 +7,7 @@ namespace Quade.Services;
 
 public class ChatService
 {
-    private readonly ApiClient _apiClient;
+    private readonly ModelProviderResolver _providerResolver;
     private readonly ModeDetector _modeDetector;
     private readonly ConfigService _configService;
     private readonly ThoughtProcessLogger _logger;
@@ -20,13 +20,13 @@ public class ChatService
     public ConversationMode CurrentMode => _currentMode;
 
     public ChatService(
-        ApiClient apiClient, 
+        ModelProviderResolver providerResolver,
         ModeDetector modeDetector,
         ConfigService configService,
         ThoughtProcessLogger logger,
         ChatContextBuilder contextBuilder)
     {
-        _apiClient = apiClient;
+        _providerResolver = providerResolver;
         _modeDetector = modeDetector;
         _configService = configService;
         _logger = logger;
@@ -55,10 +55,17 @@ public class ChatService
 
         var contextMessages = _contextBuilder.BuildContext(_messages);
 
-        var responseText = await _apiClient.SendMessageAsync(
+        var provider = _providerResolver.GetProviderForModel(config.ConversationalModel);
+        var requestConfig = new ModelRequestConfig
+        {
+            Model = config.ConversationalModel,
+            MaxTokens = 4096
+        };
+
+        var responseText = await provider.SendMessageAsync(
+            requestConfig,
             contextMessages,
-            systemPrompt,
-            config.ConversationalModel
+            systemPrompt
         );
 
         var responseMsg = new Message

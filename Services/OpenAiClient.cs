@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ using Quade.Models;
 
 namespace Quade.Services;
 
-public class OpenAiClient
+public class OpenAiClient : IModelProvider
 {
     private readonly HttpClient _httpClient;
     private const string BASE_URL = "https://api.openai.com/v1";
@@ -71,6 +72,55 @@ public class OpenAiClient
         return models.OrderByDescending(m => m.CreatedAt).ToList();
     }
 
+    public async Task<string> SendMessageAsync(
+        ModelRequestConfig config,
+        List<Message> messages,
+        string? systemPrompt = null)
+    {
+        var apiMessages = new List<object>();
+        
+        if (!string.IsNullOrWhiteSpace(systemPrompt))
+        {
+            apiMessages.Add(new
+            {
+                role = "system",
+                content = systemPrompt
+            });
+        }
+        
+        apiMessages.AddRange(messages.Select(m => new
+        {
+            role = m.IsUser ? "user" : "assistant",
+            content = m.Content
+        }));
+
+        var request = new
+        {
+            model = config.Model,
+            max_tokens = config.MaxTokens,
+            messages = apiMessages.ToArray()
+        };
+
+        var json = JsonSerializer.Serialize(request);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        
+        var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            var errorJson = JsonSerializer.Deserialize<JsonDocument>(errorContent);
+            var errorMessage = errorJson?.RootElement.GetProperty("error").GetProperty("message").GetString() 
+                ?? "Unknown API error";
+            throw new HttpRequestException(errorMessage);
+        }
+        
+        var responseJson = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<ChatCompletionResponse>(responseJson);
+        
+        return result?.Choices?.FirstOrDefault()?.Message?.Content ?? string.Empty;
+    }
+
     private string FormatDisplayName(string modelId)
     {
         return modelId switch
@@ -99,5 +149,23 @@ public class OpenAiClient
         
         [JsonPropertyName("created")]
         public long Created { get; set; }
+    }
+
+    private class ChatCompletionResponse
+    {
+        [JsonPropertyName("choices")]
+        public List<Choice> Choices { get; set; } = new();
+    }
+
+    private class Choice
+    {
+        [JsonPropertyName("message")]
+        public MessageContent Message { get; set; } = new();
+    }
+
+    private class MessageContent
+    {
+        [JsonPropertyName("content")]
+        public string Content { get; set; } = string.Empty;
     }
 }
