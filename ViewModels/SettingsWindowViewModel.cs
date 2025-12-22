@@ -13,14 +13,17 @@ public class SettingsWindowViewModel : ViewModelBase
     private string _anthropicKeyDisplay = "(not set)";
     private string _openaiKeyDisplay = "(not set)";
     private string _anlatanKeyDisplay = "(not set)";
+    private string _supabaseKeyDisplay = "(not set)";
 
     private bool _hasAnthropicKey;
     private bool _hasOpenaiKey;
     private bool _hasAnlatanKey;
+    private bool _hasSupabaseKey;
 
     private string _anthropicKeyInput = string.Empty;
     private string _openaiKeyInput = string.Empty;
     private string _anlatanKeyInput = string.Empty;
+    private string _supabaseKeyInput = string.Empty;
 
     public string AnthropicKeyDisplay
     {
@@ -38,6 +41,11 @@ public class SettingsWindowViewModel : ViewModelBase
     {
         get => _anlatanKeyDisplay;
         set => this.RaiseAndSetIfChanged(ref _anlatanKeyDisplay, value);
+    }
+
+    public string SupabaseKeyDisplay {
+        get => _supabaseKeyDisplay;
+        set => this.RaiseAndSetIfChanged(ref _supabaseKeyDisplay, value);
     }
 
     public bool HasAnthropicKey
@@ -58,6 +66,12 @@ public class SettingsWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _hasAnlatanKey, value);
     }
 
+    public bool HasSupabaseKey
+    {
+        get => _hasSupabaseKey;
+        set => this.RaiseAndSetIfChanged(ref _hasSupabaseKey, value);
+    }
+
     public string AnthropicKeyInput
     {
         get => _anthropicKeyInput;
@@ -76,6 +90,12 @@ public class SettingsWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _anlatanKeyInput, value);
     }
 
+    public string SupabaseKeyInput
+    {
+        get => _supabaseKeyInput;
+        set => this.RaiseAndSetIfChanged(ref _supabaseKeyInput, value);
+    }
+
     public SettingsWindowViewModel(CredentialsService credentialsService, ApiClient apiClient)
     {
         _credentialsService = credentialsService;
@@ -87,6 +107,7 @@ public class SettingsWindowViewModel : ViewModelBase
         await UpdateKeyDisplayAsync(CredentialsService.ANTHROPIC);
         await UpdateKeyDisplayAsync(CredentialsService.OPENAI);
         await UpdateKeyDisplayAsync(CredentialsService.ANLATAN);
+        await UpdateKeyDisplayAsync(CredentialsService.SUPABASE);
     }
 
     public async Task AddOrReplaceKeyAsync(string provider)
@@ -96,6 +117,7 @@ public class SettingsWindowViewModel : ViewModelBase
             CredentialsService.ANTHROPIC => AnthropicKeyInput,
             CredentialsService.OPENAI => OpenaiKeyInput,
             CredentialsService.ANLATAN => AnlatanKeyInput,
+            CredentialsService.SUPABASE => SupabaseKeyInput,
             _ => string.Empty
         };
 
@@ -139,6 +161,10 @@ public class SettingsWindowViewModel : ViewModelBase
                 HasAnlatanKey = hasKey;
                 AnlatanKeyDisplay = display;
                 break;
+            case CredentialsService.SUPABASE:
+                HasSupabaseKey = hasKey;
+                SupabaseKeyDisplay = display;
+                break;
         }
     }
 
@@ -154,6 +180,9 @@ public class SettingsWindowViewModel : ViewModelBase
                 break;
             case CredentialsService.ANLATAN:
                 AnlatanKeyInput = string.Empty;
+                break;
+            case CredentialsService.SUPABASE:
+                SupabaseKeyInput = string.Empty;
                 break;
         }
     }

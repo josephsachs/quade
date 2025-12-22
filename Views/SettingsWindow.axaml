@@ -4,7 +4,7 @@
         x:Class="Quade.Views.SettingsWindow"
         x:DataType="vm:SettingsWindowViewModel"
         Title="Settings"
-        Width="600" Height="400"
+        Width="600" Height="700"
         WindowStartupLocation="CenterOwner">
 
     <TabControl>
@@ -91,6 +91,34 @@
                                         PasswordChar="•"/>
                                 <Button Content="Add" 
                                        Click="AddAnlatanKey_Click"
+                                       HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Supabase -->
+                    <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Supabase" FontWeight="Bold" FontSize="14"/>
+                            
+                            <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasSupabaseKey}">
+                                <TextBlock Grid.Column="0" Text="Current Key:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="1" 
+                                          Text="{Binding SupabaseKeyDisplay}" 
+                                          VerticalAlignment="Center"
+                                          FontFamily="Consolas,Courier New,monospace"/>
+                                <Button Grid.Column="2" 
+                                       Content="Delete" 
+                                       Click="DeleteSupabaseKey_Click"
+                                       Margin="10,0,0,0"/>
+                            </Grid>
+                            
+                            <StackPanel Spacing="10" IsVisible="{Binding !HasSupabaseKey}">
+                                <TextBox Text="{Binding SupabaseKeyInput}" 
+                                        Watermark="Enter API key..."
+                                        PasswordChar="•"/>
+                                <Button Content="Add" 
+                                       Click="AddSupabaseKey_Click"
                                        HorizontalAlignment="Right"/>
                             </StackPanel>
                         </StackPanel>
