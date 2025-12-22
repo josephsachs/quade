@@ -29,10 +29,7 @@ public partial class App : Application
             var conversationService = new ConversationService();
             var contextBuilder = new ChatContextBuilder();
             
-            var providerResolver = new ModelProviderResolver();
-            providerResolver.RegisterProvider("claude", anthropicClient);
-            providerResolver.RegisterProvider("gpt", openAiClient);
-            providerResolver.RegisterProvider("text-embedding", openAiClient);
+            var providerResolver = new ModelProviderResolver(anthropicClient, openAiClient);
             
             var modeDetector = new ModeDetector(providerResolver, logger, configService);
             var chatService = new ChatService(providerResolver, modeDetector, configService, logger, contextBuilder);

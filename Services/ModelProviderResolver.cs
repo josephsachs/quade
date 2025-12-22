@@ -1,25 +1,29 @@
 using System;
-using System.Collections.Generic;
+using Quade.Models;
 
 namespace Quade.Services;
 
 public class ModelProviderResolver
 {
-    private readonly Dictionary<string, IModelProvider> _providersByPrefix = new();
+    private readonly IModelProvider _anthropicProvider;
+    private readonly IModelProvider _openAiProvider;
 
-    public void RegisterProvider(string prefix, IModelProvider provider)
+    public ModelProviderResolver(IModelProvider anthropicProvider, IModelProvider openAiProvider)
     {
-        _providersByPrefix[prefix] = provider;
+        _anthropicProvider = anthropicProvider;
+        _openAiProvider = openAiProvider;
     }
 
     public IModelProvider GetProviderForModel(string modelId)
     {
-        foreach (var (prefix, provider) in _providersByPrefix)
+        if (modelId.StartsWith("claude-", StringComparison.OrdinalIgnoreCase))
         {
-            if (modelId.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            {
-                return provider;
-            }
+            return _anthropicProvider;
+        }
+
+        if (OpenAiModelRegistry.IsSupported(modelId))
+        {
+            return _openAiProvider;
         }
 
         throw new InvalidOperationException($"No provider registered for model: {modelId}");

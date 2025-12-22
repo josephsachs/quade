@@ -44,29 +44,19 @@ public class OpenAiClient : IModelProvider
 
         foreach (var model in result.Data)
         {
-            var categories = new List<string>();
+            var capabilities = OpenAiModelRegistry.GetCapabilities(model.Id);
             
-            if (model.Id.Contains("embedding"))
-            {
-                categories.Add("memory");
-            }
-            else if (model.Id.StartsWith("gpt-"))
-            {
-                categories.Add("chat");
-                categories.Add("thought");
-            }
+            if (capabilities == null)
+                continue;
 
-            if (categories.Count > 0)
+            models.Add(new ModelInfo
             {
-                models.Add(new ModelInfo
-                {
-                    Id = model.Id,
-                    DisplayName = FormatDisplayName(model.Id),
-                    Type = "model",
-                    CreatedAt = DateTimeOffset.FromUnixTimeSeconds(model.Created).DateTime,
-                    Categories = categories
-                });
-            }
+                Id = model.Id,
+                DisplayName = FormatDisplayName(model.Id),
+                Type = "model",
+                CreatedAt = DateTimeOffset.FromUnixTimeSeconds(model.Created).DateTime,
+                Categories = new List<string>(capabilities.Categories)
+            });
         }
         
         return models
@@ -81,6 +71,18 @@ public class OpenAiClient : IModelProvider
         List<Message> messages,
         string? systemPrompt = null)
     {
+        var capabilities = OpenAiModelRegistry.GetCapabilities(config.Model);
+        
+        if (capabilities == null)
+        {
+            throw new InvalidOperationException($"Model {config.Model} is not supported");
+        }
+
+        if (capabilities.Endpoint != OpenAiEndpoint.ChatCompletions)
+        {
+            throw new InvalidOperationException($"Model {config.Model} does not support chat completions endpoint");
+        }
+
         var apiMessages = new List<object>();
         
         if (!string.IsNullOrWhiteSpace(systemPrompt))
@@ -98,17 +100,36 @@ public class OpenAiClient : IModelProvider
             content = m.Content
         }));
 
-        var request = new
+        var actualMaxTokens = Math.Max(config.MaxTokens, 16);
+        
+        object request;
+        if (capabilities.ParameterFormat == OpenAiParameterFormat.Reasoning)
         {
-            model = config.Model,
-            max_tokens = config.MaxTokens,
-            messages = apiMessages.ToArray()
-        };
+            request = new
+            {
+                model = config.Model,
+                max_completion_tokens = actualMaxTokens,
+                messages = apiMessages.ToArray()
+            };
+        }
+        else
+        {
+            request = new
+            {
+                model = config.Model,
+                max_tokens = actualMaxTokens,
+                messages = apiMessages.ToArray()
+            };
+        }
 
         var json = JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         
+        Console.WriteLine($"Request content: {json}");
+
         var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
+
+        Console.WriteLine($"Raw response: {await response.Content.ReadAsStringAsync()}");
         
         if (!response.IsSuccessStatusCode)
         {
