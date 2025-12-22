@@ -32,7 +32,6 @@ public partial class MainWindow : Window
         
         if (DataContext is MainWindowViewModel viewModel)
         {
-            viewModel.AvailableModels.CollectionChanged += OnModelsChanged;
             viewModel.PropertyChanged += OnViewModelPropertyChanged;
             viewModel.Messages.CollectionChanged += OnMessagesChanged;
             
@@ -47,11 +46,6 @@ public partial class MainWindow : Window
                 ShowThoughtProcess_Click(null, new RoutedEventArgs());
             }
         }
-    }
-
-    private void OnModelsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        BuildModelMenu();
     }
 
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -296,6 +290,7 @@ public partial class MainWindow : Window
             try
             {
                 await viewModel.RefreshModelsAsync();
+                BuildModelMenu();
             }
             catch (Exception ex)
             {

@@ -69,7 +69,11 @@ public class OpenAiClient : IModelProvider
             }
         }
         
-        return models.OrderByDescending(m => m.CreatedAt).ToList();
+        return models
+            .GroupBy(m => m.DisplayName)
+            .Select(g => g.OrderByDescending(m => m.CreatedAt).First())
+            .OrderByDescending(m => m.CreatedAt)
+            .ToList();
     }
 
     public async Task<string> SendMessageAsync(
