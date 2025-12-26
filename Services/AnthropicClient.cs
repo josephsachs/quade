@@ -65,6 +65,8 @@ public class AnthropicClient : IModelProvider
         var json = JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         
+        Console.WriteLine($"request: {json}");
+
         var response = await _httpClient.PostAsync("https://api.anthropic.com/v1/messages", content);
         
         if (!response.IsSuccessStatusCode)
@@ -79,6 +81,8 @@ public class AnthropicClient : IModelProvider
         var responseJson = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<MessageResponse>(responseJson);
         
+        Console.WriteLine($"response: {responseJson}");
+
         return result?.Content?.FirstOrDefault()?.Text ?? string.Empty;
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,10 +30,10 @@ public class ChatMemoryStorer
 
     var messages = allMessages.Where(message => !message.IsMemorized);
 
-    if (messages.Count() < MEMORY_STORE_INTERVAL)
-    {
-      return false;
-    }
+    //if (messages.Count() < MEMORY_STORE_INTERVAL)
+    //{
+    //  return false;
+    //}
 
     _logger.LogInfo($"Processing messages for memory, found {messages.Count()} messages.");
     _logger.LogInfo($"Identifying salient informatioon...");
@@ -42,16 +43,15 @@ public class ChatMemoryStorer
 
     var requestConfig = new ModelRequestConfig
     {
-      Model = config.MemoryModel
+      Model = config.MemoryModel,
+      MaxTokens = 500
     };
 
     var response = await provider.SendMessageAsync(
       requestConfig,
-      messages.ToList(),
-      $"Identify facts about the user, relevant definitions or insights in the following text and produce a list of summaries separated by line breaks."
+      messages.ToList()//,
+      //$"Generate a summary of the messages, collecting knowledge about the user or described events, idiosyncratic definitions by either user or Claude, significant topics in the text, and insights shared or arrived at in conversation. Place each in a separate paragraph."
     );
-
-    _logger.LogInfo($"Received {response}");
 
     allMessages
       .Where(m => !m.IsMemorized).ToList()
