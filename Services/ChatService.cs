@@ -83,7 +83,7 @@ public class ChatService
 
         // No return for now
         // Maybe return the result for vector embedding, or something or ? or whatever
-        await _chatMemoryStorer.GetMemoryEntries(_messages);
+        await _chatMemoryStorer.ProcessMemories(_messages);
 
         return (responseMsg, newMode);
     }
