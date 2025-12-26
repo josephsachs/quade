@@ -52,7 +52,8 @@ public partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(MainWindowViewModel.SelectedModelId) ||
             e.PropertyName == nameof(MainWindowViewModel.ThoughtModel) ||
-            e.PropertyName == nameof(MainWindowViewModel.MemoryModel))
+            e.PropertyName == nameof(MainWindowViewModel.MemoryModel) ||
+            e.PropertyName == nameof(MainWindowViewModel.VectorModel))
         {
             UpdateModelMenuCheckmarks();
         }
@@ -104,6 +105,7 @@ public partial class MainWindow : Window
         var chatModels = new List<ModelInfo>();
         var thoughtModels = new List<ModelInfo>();
         var memoryModels = new List<ModelInfo>();
+        var vectorModels = new List<ModelInfo>();
 
         foreach (var model in viewModel.AvailableModels)
         {
@@ -113,6 +115,8 @@ public partial class MainWindow : Window
                 thoughtModels.Add(model);
             if (model.Categories.Contains("memory"))
                 memoryModels.Add(model);
+            if (model.Categories.Contains("vector"))
+                vectorModels.Add(model);
         }
 
         var chatMenuItem = new MenuItem { Header = "_Chat Models" };
@@ -153,13 +157,8 @@ public partial class MainWindow : Window
         }
         modelMenu.Items.Add(thoughtMenuItem);
 
-        var hasOpenAiKey = await viewModel.CredentialsService.HasApiKeyAsync(CredentialsService.OPENAI);
-        var memoryMenuItem = new MenuItem 
-        { 
-            Header = "_Memory Models",
-            IsEnabled = hasOpenAiKey
-        };
         
+        var memoryMenuItem = new MenuItem { Header = "_Memory Models" };
         foreach (var model in memoryModels)
         {
             var menuItem = new MenuItem
@@ -177,6 +176,31 @@ public partial class MainWindow : Window
             memoryMenuItem.Items.Add(menuItem);
         }
         modelMenu.Items.Add(memoryMenuItem);
+
+        var hasOpenAiKey = await viewModel.CredentialsService.HasApiKeyAsync(CredentialsService.OPENAI);
+        var vectorMenuItem = new MenuItem 
+        { 
+            Header = "_Vector Models",
+            IsEnabled = hasOpenAiKey
+        };
+        
+        foreach (var model in vectorModels)
+        {
+            var menuItem = new MenuItem
+            {
+                Header = model.DisplayName,
+                Tag = model.Id
+            };
+
+            if (model.Id == viewModel.VectorModel)
+            {
+                menuItem.Icon = new TextBlock { Text = "✓" };
+            }
+
+            menuItem.Click += async (s, e) => await OnVectorModelSelected(s, e);
+            vectorMenuItem.Items.Add(menuItem);
+        }
+        modelMenu.Items.Add(vectorMenuItem);
 
         modelMenu.Items.Add(new Separator());
 
@@ -209,6 +233,10 @@ public partial class MainWindow : Window
                 else if (header == "_Memory Models")
                 {
                     UpdateCheckmarksInSubmenu(subMenu, viewModel.MemoryModel);
+                }
+                else if (header == "_Vector Models")
+                {
+                    UpdateCheckmarksInSubmenu(subMenu, viewModel.VectorModel);
                 }
             }
         }
@@ -275,6 +303,23 @@ public partial class MainWindow : Window
             try
             {
                 await viewModel.SelectMemoryModelAsync(modelId);
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialog("Model Selection Error", ex.Message);
+            }
+        }
+    }
+
+    private async Task OnVectorModelSelected(object? sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && 
+            menuItem.Tag is string modelId &&
+            DataContext is MainWindowViewModel viewModel)
+        {
+            try
+            {
+                await viewModel.SelectVectorModelAsync(modelId);
             }
             catch (Exception ex)
             {
