@@ -7,43 +7,56 @@ namespace Quade.Services;
 
 public class ChatMemoryStorer
 {
-    private readonly ModelProviderResolver _providerResolver;
-    private readonly ThoughtProcessLogger _logger;
-    private readonly ConfigService _configService;
+  private readonly ModelProviderResolver _providerResolver;
+  private readonly ThoughtProcessLogger _logger;
+  private readonly ConfigService _configService;
 
-    private const int MEMORY_STORE_INTERVAL = 24;
+  private const int MEMORY_STORE_INTERVAL = 24;
 
-    public ChatMemoryStorer(
-        ModelProviderResolver providerResolver, 
-        ThoughtProcessLogger logger,
-        ConfigService configService)
+  public ChatMemoryStorer(
+      ModelProviderResolver providerResolver,
+      ThoughtProcessLogger logger,
+      ConfigService configService)
+  {
+    _providerResolver = providerResolver;
+    _logger = logger;
+    _configService = configService;
+  }
+
+  public async Task<bool> GetMemoryEntries(List<Message> allMessages)
+  {
+    _logger.LogInfo($"Checking for memories to store...");
+
+    var messages = allMessages.Where(message => !message.IsMemorized);
+
+    if (messages.Count() < MEMORY_STORE_INTERVAL)
     {
-        _providerResolver = providerResolver;
-        _logger = logger;
-        _configService = configService;
+      return false;
     }
 
-    public async Task<bool> StoreIfInterval(List<Message> allMessages)
+    _logger.LogInfo($"Processing messages for memory, found {messages.Count()} messages.");
+    _logger.LogInfo($"Identifying salient informatioon...");
+
+    var config = await _configService.LoadConfigAsync();
+    var provider = _providerResolver.GetProviderForModel(config.MemoryModel);
+
+    var requestConfig = new ModelRequestConfig
     {
-        var messages = allMessages.Where(message => !message.IsMemorized);
+      Model = config.MemoryModel
+    };
 
-        _logger.LogInfo($"Processing messages for memory, found {messages.Count()} messages");
-        _logger.LogInfo($"Identifying salient informatioon");
+    var response = await provider.SendMessageAsync(
+      requestConfig,
+      messages.ToList(),
+      $"Identify facts about the user, relevant definitions or insights in the following text and produce a list of summaries separated by line breaks."
+    );
 
-        var config = await _configService.LoadConfigAsync();
-        var provider = _providerResolver.GetProviderForModel(config.ThoughtModel);
+    _logger.LogInfo($"Received {response}");
 
-        var requestConfig = new ModelRequestConfig
-        {
-          Model = config.ThoughtModel
-        };
+    allMessages
+      .Where(m => !m.IsMemorized).ToList()
+      .ForEach(m => m.IsMemorized = true);
 
-        var response = await provider.SendMessageAsync(
-                requestConfig,
-                messages.ToList(),
-                $"Identify facts about the user, relevant definitions or insights in the following text and produce a list of summaries separated by line breaks."
-        );
-
-        return false;
-    }
+    return false;
+  }
 }

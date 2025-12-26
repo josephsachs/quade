@@ -32,7 +32,8 @@ public partial class App : Application
             var providerResolver = new ModelProviderResolver(anthropicClient, openAiClient);
             
             var modeDetector = new ModeDetector(providerResolver, logger, configService);
-            var chatService = new ChatService(providerResolver, modeDetector, configService, logger, contextBuilder);
+            var chatMemoryStorer = new ChatMemoryStorer(providerResolver, logger, configService);
+            var chatService = new ChatService(providerResolver, modeDetector, chatMemoryStorer, configService, logger, contextBuilder);
 
             var hasApiKey = await credentialsService.HasApiKeyAsync(CredentialsService.ANTHROPIC);
             
