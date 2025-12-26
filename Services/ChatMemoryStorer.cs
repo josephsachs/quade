@@ -28,15 +28,17 @@ public class ChatMemoryStorer
   {
     _logger.LogInfo($"Checking for memories to store...");
 
-    var messages = allMessages.Where(message => !message.IsMemorized);
+    var unmemoizedMessages = allMessages.Where(message => !message.IsMemorized).ToList();
 
-    //if (messages.Count() < MEMORY_STORE_INTERVAL)
-    //{
-    //  return false;
-    //}
+    _logger.LogInfo($"Processing messages for memory, found {unmemoizedMessages.Count()} messages.");
+    _logger.LogInfo($"Identifying salient information...");
 
-    _logger.LogInfo($"Processing messages for memory, found {messages.Count()} messages.");
-    _logger.LogInfo($"Identifying salient informatioon...");
+    // Format the conversation as a transcript
+    var transcript = string.Join("\n\n", unmemoizedMessages.Select(m =>
+    {
+      var participant = m.IsUser ? "User" : "Assistant";
+      return $"{participant}: \"{m.Content}\"";
+    }));
 
     var config = await _configService.LoadConfigAsync();
     var provider = _providerResolver.GetProviderForModel(config.MemoryModel);
@@ -47,16 +49,27 @@ public class ChatMemoryStorer
       MaxTokens = 500
     };
 
+    // Create a single-message list with the formatted transcript
+    var promptMessages = new List<Message>
+    {
+        new Message
+        {
+            Content = $"Here is a conversation transcript:\n\n{transcript}\n\nGenerate a summary of this conversation, collecting knowledge about the user or described events, idiosyncratic definitions by either user or Assistant, significant topics in the text, and insights shared or arrived at in conversation. Place each in a separate paragraph.",
+            IsUser = true
+        }
+    };
+
     var response = await provider.SendMessageAsync(
-      requestConfig,
-      messages.ToList(),
-      $"Generate a summary of the messages, collecting knowledge about the user or described events, idiosyncratic definitions by either user or Claude, significant topics in the text, and insights shared or arrived at in conversation. Place each in a separate paragraph."
+        requestConfig,
+        promptMessages
     );
 
     allMessages
-      .Where(m => !m.IsMemorized).ToList()
-      .ForEach(m => m.IsMemorized = true);
+        .Where(m => !m.IsMemorized).ToList()
+        .ForEach(m => m.IsMemorized = true);
 
-    return false;
+    _logger.LogInfo($"Memory summary generated: {response}");
+
+    return true;
   }
 }
