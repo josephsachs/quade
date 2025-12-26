@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Quade.Models;
+using Quade.Services;
 using Quade.ViewModels;
 
 namespace Quade.Views;
@@ -31,7 +32,6 @@ public partial class MainWindow : Window
         
         if (DataContext is MainWindowViewModel viewModel)
         {
-            viewModel.AvailableModels.CollectionChanged += OnModelsChanged;
             viewModel.PropertyChanged += OnViewModelPropertyChanged;
             viewModel.Messages.CollectionChanged += OnMessagesChanged;
             
@@ -48,16 +48,13 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnModelsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        BuildModelMenu();
-    }
-
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MainWindowViewModel.SelectedModelId))
+        if (e.PropertyName == nameof(MainWindowViewModel.SelectedModelId) ||
+            e.PropertyName == nameof(MainWindowViewModel.ThoughtModel) ||
+            e.PropertyName == nameof(MainWindowViewModel.MemoryModel))
         {
-            BuildModelMenu();
+            UpdateModelMenuCheckmarks();
         }
     }
 
@@ -93,7 +90,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void BuildModelMenu()
+    private async void BuildModelMenu()
     {
         if (DataContext is not MainWindowViewModel viewModel)
             return;
@@ -104,7 +101,22 @@ public partial class MainWindow : Window
 
         modelMenu.Items.Clear();
 
+        var chatModels = new List<ModelInfo>();
+        var thoughtModels = new List<ModelInfo>();
+        var memoryModels = new List<ModelInfo>();
+
         foreach (var model in viewModel.AvailableModels)
+        {
+            if (model.Categories.Contains("chat"))
+                chatModels.Add(model);
+            if (model.Categories.Contains("thought"))
+                thoughtModels.Add(model);
+            if (model.Categories.Contains("memory"))
+                memoryModels.Add(model);
+        }
+
+        var chatMenuItem = new MenuItem { Header = "_Chat Models" };
+        foreach (var model in chatModels)
         {
             var menuItem = new MenuItem
             {
@@ -117,21 +129,110 @@ public partial class MainWindow : Window
                 menuItem.Icon = new TextBlock { Text = "✓" };
             }
 
-            menuItem.Click += async (s, e) => await OnModelSelected(s, e);
-            modelMenu.Items.Add(menuItem);
+            menuItem.Click += async (s, e) => await OnChatModelSelected(s, e);
+            chatMenuItem.Items.Add(menuItem);
         }
+        modelMenu.Items.Add(chatMenuItem);
 
-        if (viewModel.AvailableModels.Count > 0)
+        var thoughtMenuItem = new MenuItem { Header = "_Thought Models" };
+        foreach (var model in thoughtModels)
         {
-            modelMenu.Items.Add(new Separator());
+            var menuItem = new MenuItem
+            {
+                Header = model.DisplayName,
+                Tag = model.Id
+            };
+
+            if (model.Id == viewModel.ThoughtModel)
+            {
+                menuItem.Icon = new TextBlock { Text = "✓" };
+            }
+
+            menuItem.Click += async (s, e) => await OnThoughtModelSelected(s, e);
+            thoughtMenuItem.Items.Add(menuItem);
         }
+        modelMenu.Items.Add(thoughtMenuItem);
+
+        var hasOpenAiKey = await viewModel.CredentialsService.HasApiKeyAsync(CredentialsService.OPENAI);
+        var memoryMenuItem = new MenuItem 
+        { 
+            Header = "_Memory Models",
+            IsEnabled = hasOpenAiKey
+        };
+        
+        foreach (var model in memoryModels)
+        {
+            var menuItem = new MenuItem
+            {
+                Header = model.DisplayName,
+                Tag = model.Id
+            };
+
+            if (model.Id == viewModel.MemoryModel)
+            {
+                menuItem.Icon = new TextBlock { Text = "✓" };
+            }
+
+            menuItem.Click += async (s, e) => await OnMemoryModelSelected(s, e);
+            memoryMenuItem.Items.Add(menuItem);
+        }
+        modelMenu.Items.Add(memoryMenuItem);
+
+        modelMenu.Items.Add(new Separator());
 
         var refreshItem = new MenuItem { Header = "_Refresh" };
         refreshItem.Click += async (s, e) => await OnRefreshModels(s, e);
         modelMenu.Items.Add(refreshItem);
     }
 
-    private async Task OnModelSelected(object? sender, RoutedEventArgs e)
+    private void UpdateModelMenuCheckmarks()
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+            return;
+
+        var modelMenu = this.FindControl<MenuItem>("ModelMenu");
+        if (modelMenu == null)
+            return;
+
+        foreach (var item in modelMenu.Items)
+        {
+            if (item is MenuItem subMenu && subMenu.Header is string header)
+            {
+                if (header == "_Chat Models")
+                {
+                    UpdateCheckmarksInSubmenu(subMenu, viewModel.SelectedModelId);
+                }
+                else if (header == "_Thought Models")
+                {
+                    UpdateCheckmarksInSubmenu(subMenu, viewModel.ThoughtModel);
+                }
+                else if (header == "_Memory Models")
+                {
+                    UpdateCheckmarksInSubmenu(subMenu, viewModel.MemoryModel);
+                }
+            }
+        }
+    }
+
+    private void UpdateCheckmarksInSubmenu(MenuItem subMenu, string selectedModelId)
+    {
+        foreach (var item in subMenu.Items)
+        {
+            if (item is MenuItem menuItem && menuItem.Tag is string modelId)
+            {
+                if (modelId == selectedModelId)
+                {
+                    menuItem.Icon = new TextBlock { Text = "✓" };
+                }
+                else
+                {
+                    menuItem.Icon = null;
+                }
+            }
+        }
+    }
+
+    private async Task OnChatModelSelected(object? sender, RoutedEventArgs e)
     {
         if (sender is MenuItem menuItem && 
             menuItem.Tag is string modelId &&
@@ -139,7 +240,41 @@ public partial class MainWindow : Window
         {
             try
             {
-                await viewModel.SelectModelAsync(modelId);
+                await viewModel.SelectChatModelAsync(modelId);
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialog("Model Selection Error", ex.Message);
+            }
+        }
+    }
+
+    private async Task OnThoughtModelSelected(object? sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && 
+            menuItem.Tag is string modelId &&
+            DataContext is MainWindowViewModel viewModel)
+        {
+            try
+            {
+                await viewModel.SelectThoughtModelAsync(modelId);
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorDialog("Model Selection Error", ex.Message);
+            }
+        }
+    }
+
+    private async Task OnMemoryModelSelected(object? sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && 
+            menuItem.Tag is string modelId &&
+            DataContext is MainWindowViewModel viewModel)
+        {
+            try
+            {
+                await viewModel.SelectMemoryModelAsync(modelId);
             }
             catch (Exception ex)
             {
@@ -155,6 +290,7 @@ public partial class MainWindow : Window
             try
             {
                 await viewModel.RefreshModelsAsync();
+                BuildModelMenu();
             }
             catch (Exception ex)
             {
@@ -337,7 +473,7 @@ public partial class MainWindow : Window
         {
             var settingsWindow = new SettingsWindow
             {
-                DataContext = new SettingsWindowViewModel(viewModel.CredentialsService, viewModel.GetApiClient())
+                DataContext = new SettingsWindowViewModel(viewModel.CredentialsService, viewModel.GetAnthropicClient())
             };
             
             await settingsWindow.ShowDialog(this);

@@ -70,4 +70,20 @@ public partial class SettingsWindow : Window
             await viewModel.DeleteKeyAsync(CredentialsService.ANLATAN);
         }
     }
+
+        private async void AddSupabaseKey_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.AddOrReplaceKeyAsync(CredentialsService.SUPABASE);
+        }
+    }
+
+        private async void DeleteSupabaseKey_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.DeleteKeyAsync(CredentialsService.SUPABASE);
+        }
+    }
 }

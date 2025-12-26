@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Quade.Models;
@@ -16,4 +17,7 @@ public class ModelInfo
     
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; }
+    
+    [JsonPropertyName("categories")]
+    public List<string> Categories { get; set; } = new();
 }

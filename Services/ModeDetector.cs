@@ -7,9 +7,9 @@ namespace Quade.Services;
 
 public class ModeDetector
 {
-    private readonly ApiClient _apiClient;
+    private readonly ModelProviderResolver _providerResolver;
     private readonly ThoughtProcessLogger _logger;
-    private const string MODE_SELECTOR_MODEL = "claude-3-5-haiku-20241022";
+    private readonly ConfigService _configService;
 
     private const string MODE_SELECT_IS_QUESTION = @"Is the user asking a question?";
 
@@ -27,33 +27,48 @@ public class ModeDetector
 
     private const string MODE_SELECT_IS_REASONABLE = @"Is the user's statement reasonable and safe?";
 
-    public ModeDetector(ApiClient apiClient, ThoughtProcessLogger logger)
+    public ModeDetector(
+        ModelProviderResolver providerResolver, 
+        ThoughtProcessLogger logger,
+        ConfigService configService)
     {
-        _apiClient = apiClient;
+        _providerResolver = providerResolver;
         _logger = logger;
+        _configService = configService;
     }
 
-    private async Task<bool> ModeQuery(List<Quade.Models.Message> message, string prompt) {
-        //_logger.LogModeDetectionStart();
+    private async Task<bool> ModeQuery(List<Message> message, string prompt) 
+    {
         _logger.LogModePrompt(prompt);
 
-        for (var attempts = 0; attempts < 4; attempts++) {
-            var response = await _apiClient.SendMessageAsync(
-                message, 
-                $"{prompt} Answer the question with a single word, YES or NO.",
-                MODE_SELECTOR_MODEL,
-                maxTokens: 1
+        var config = await _configService.LoadConfigAsync();
+        var provider = _providerResolver.GetProviderForModel(config.ThoughtModel);
+
+        for (var attempts = 0; attempts < 4; attempts++) 
+        {
+            var requestConfig = new ModelRequestConfig
+            {
+                Model = config.ThoughtModel,
+                MaxTokens = 1
+            };
+
+            var response = await provider.SendMessageAsync(
+                requestConfig,
+                message,
+                $"{prompt} Answer the question with a single word, YES or NO."
             );
 
             _logger.LogModeResponse(response);
 
-            var result = response?.ToUpperInvariant() switch {
+            var result = response?.ToUpperInvariant() switch 
+            {
                 "YES" => (bool?)true,
                 "NO" => (bool?)false,
                 _ => null
             };
 
-            if (result.HasValue) return result.Value;
+            if (result.HasValue) 
+                return result.Value;
         }
 
         _logger.LogModeResponse("Tried three times without valid response");
@@ -72,46 +87,56 @@ public class ModeDetector
 
         var isQuestion = await ModeQuery(lastMessage, MODE_SELECT_IS_QUESTION);
 
-        if (isQuestion) {
+        if (isQuestion) 
+        {
             return await HandleQuestion(lastMessage);
-
-        } else {
+        } 
+        else 
+        {
             var isCasual = await ModeQuery(lastMessage, MODE_SELECT_IS_CASUAL);
 
             return isCasual ? await HandleCasual(lastMessage) : await HandleNonCasual(lastMessage);
         }
     }
 
-    public async Task<ConversationMode> HandleQuestion(List<Message> lastMessage) {
+    public async Task<ConversationMode> HandleQuestion(List<Message> lastMessage) 
+    {
         var isInformational = await ModeQuery(lastMessage, MODE_SELECT_IS_INFORMATIONAL);
 
-        if (isInformational) {
+        if (isInformational) 
+        {
             var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
 
             return isClear ? ConversationMode.Opine : ConversationMode.Investigate;
-
-        } else {
+        } 
+        else 
+        {
             return ConversationMode.Opine;
         }
     }
 
-    public async Task<ConversationMode> HandleCasual(List<Message> lastMessage) {
+    public async Task<ConversationMode> HandleCasual(List<Message> lastMessage) 
+    {
         var isJoking = await ModeQuery(lastMessage, MODE_SELECT_IS_JOKING);
 
-        if (isJoking) {
+        if (isJoking) 
+        {
             return ConversationMode.Amuse;
         }
 
         var isPersonal = await ModeQuery(lastMessage, MODE_SELECT_IS_PERSONAL);
         var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
 
-        if (isPersonal) {
+        if (isPersonal) 
+        {
             return isReasonable ? ConversationMode.Empower : ConversationMode.Opine;
-
-        } else {
+        } 
+        else 
+        {
             var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
 
-            if (!isClear) {
+            if (!isClear) 
+            {
                 return ConversationMode.Investigate;
             }
 
@@ -119,20 +144,26 @@ public class ModeDetector
         }
     }
 
-    public async Task<ConversationMode> HandleNonCasual(List<Message> lastMessage) {
+    public async Task<ConversationMode> HandleNonCasual(List<Message> lastMessage) 
+    {
         var isPlan = await ModeQuery(lastMessage, MODE_SELECT_IS_PLAN);
         var isClear = await ModeQuery(lastMessage, MODE_SELECT_IS_STATEMENT_CLEAR); 
 
-        if (isPlan) {
-            if (isClear) {
+        if (isPlan) 
+        {
+            if (isClear) 
+            {
                 return ConversationMode.Investigate;
-            
-            } else {
+            } 
+            else 
+            {
                 var isReasonable = await ModeQuery(lastMessage, MODE_SELECT_IS_REASONABLE);
 
                 return isReasonable ? ConversationMode.Empower : ConversationMode.Critique;
             }
-        } else {
+        } 
+        else 
+        {
             return isClear ? ConversationMode.Opine : ConversationMode.Investigate;
         }
     }

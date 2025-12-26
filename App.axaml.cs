@@ -23,12 +23,16 @@ public partial class App : Application
         {
             var configService = new ConfigService();
             var credentialsService = new CredentialsService();
-            var apiClient = new ApiClient();
+            var anthropicClient = new AnthropicClient();
+            var openAiClient = new OpenAiClient();
             var logger = new ThoughtProcessLogger();
             var conversationService = new ConversationService();
             var contextBuilder = new ChatContextBuilder();
-            var modeDetector = new ModeDetector(apiClient, logger);
-            var chatService = new ChatService(apiClient, modeDetector, configService, logger, contextBuilder);
+            
+            var providerResolver = new ModelProviderResolver(anthropicClient, openAiClient);
+            
+            var modeDetector = new ModeDetector(providerResolver, logger, configService);
+            var chatService = new ChatService(providerResolver, modeDetector, configService, logger, contextBuilder);
 
             var hasApiKey = await credentialsService.HasApiKeyAsync(CredentialsService.ANTHROPIC);
             
@@ -41,13 +45,20 @@ public partial class App : Application
             var anthropicKey = await credentialsService.GetApiKeyAsync(CredentialsService.ANTHROPIC);
             if (!string.IsNullOrWhiteSpace(anthropicKey))
             {
-                apiClient.SetApiKey(anthropicKey);
+                anthropicClient.SetApiKey(anthropicKey);
+            }
+
+            var openAiKey = await credentialsService.GetApiKeyAsync(CredentialsService.OPENAI);
+            if (!string.IsNullOrWhiteSpace(openAiKey))
+            {
+                openAiClient.SetApiKey(openAiKey);
             }
 
             var viewModel = new MainWindowViewModel(
                 chatService, 
                 configService, 
-                apiClient, 
+                anthropicClient,
+                openAiClient,
                 logger, 
                 conversationService,
                 credentialsService);
