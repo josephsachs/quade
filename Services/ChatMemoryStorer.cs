@@ -49,8 +49,8 @@ public class ChatMemoryStorer
 
     var response = await provider.SendMessageAsync(
       requestConfig,
-      messages.ToList()//,
-      //$"Generate a summary of the messages, collecting knowledge about the user or described events, idiosyncratic definitions by either user or Claude, significant topics in the text, and insights shared or arrived at in conversation. Place each in a separate paragraph."
+      messages.ToList(),
+      $"Generate a summary of the messages, collecting knowledge about the user or described events, idiosyncratic definitions by either user or Claude, significant topics in the text, and insights shared or arrived at in conversation. Place each in a separate paragraph."
     );
 
     allMessages
