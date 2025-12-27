@@ -10,7 +10,7 @@ using Quade.Models;
 
 namespace Quade.Services;
 
-public class OpenAiClient : IModelProvider
+public class OpenAiClient : IModelProvider, IVectorProvider
 {
     private readonly HttpClient _httpClient;
     private const string BASE_URL = "https://api.openai.com/v1";
@@ -107,6 +107,35 @@ public class OpenAiClient : IModelProvider
         return result?.Choices?.FirstOrDefault()?.Message?.Content ?? string.Empty;
     }
 
+    public async Task<float[]> GetEmbeddingAsync(string text)
+    {
+        var request = new
+        {
+            input = text,
+            model = "text-embedding-3-large",
+            dimensions = 3072
+        };
+
+        var json = JsonSerializer.Serialize(request);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync("https://api.openai.com/v1/embeddings", content);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            var errorJson = JsonSerializer.Deserialize<JsonDocument>(errorContent);
+            var errorMessage = errorJson?.RootElement.GetProperty("error").GetProperty("message").GetString() 
+                ?? "Unknown API error";
+            throw new HttpRequestException(errorMessage);
+        }
+        
+        var responseJson = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<EmbeddingResponse>(responseJson);
+        
+        return result?.Data?.FirstOrDefault()?.Embedding ?? Array.Empty<float>();
+    }
+
     private string FormatDisplayName(string modelId)
     {
         return modelId switch
@@ -140,5 +169,17 @@ public class OpenAiClient : IModelProvider
     {
         [JsonPropertyName("content")]
         public string Content { get; set; } = string.Empty;
+    }
+
+    private class EmbeddingResponse
+    {
+        [JsonPropertyName("data")]
+        public List<EmbeddingData> Data { get; set; } = new();
+    }
+
+    private class EmbeddingData
+    {
+        [JsonPropertyName("embedding")]
+        public float[] Embedding { get; set; } = Array.Empty<float>();
     }
 }

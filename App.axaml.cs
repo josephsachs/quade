@@ -25,15 +25,33 @@ public partial class App : Application
             var credentialsService = new CredentialsService();
             var anthropicClient = new AnthropicClient();
             var openAiClient = new OpenAiClient();
+            var supabaseClient = new SupabaseClient();
+            var qdrantClient = new QdrantClient();
             var logger = new ThoughtProcessLogger();
             var conversationService = new ConversationService();
-            var contextBuilder = new ChatContextBuilder();
             
             var providerResolver = new ModelProviderResolver(anthropicClient, openAiClient);
+            var vectorProviderResolver = new VectorProviderResolver(openAiClient);
+            var vectorStorageResolver = new VectorStorageResolver(supabaseClient, qdrantClient);
+            
+            var contextBuilder = new ChatContextBuilder(vectorProviderResolver, vectorStorageResolver, configService, logger);
             
             var modeDetector = new ModeDetector(providerResolver, logger, configService);
-            var chatMemoryStorer = new ChatMemoryStorer(providerResolver, logger, configService);
-            var chatService = new ChatService(providerResolver, modeDetector, chatMemoryStorer, configService, logger, contextBuilder);
+            var chatMemoryStorer = new ChatMemoryStorer(
+                providerResolver, 
+                vectorProviderResolver, 
+                vectorStorageResolver, 
+                logger, 
+                configService
+            );
+            var chatService = new ChatService(
+                providerResolver, 
+                modeDetector, 
+                chatMemoryStorer, 
+                configService, 
+                logger, 
+                contextBuilder
+            );
 
             var hasApiKey = await credentialsService.HasApiKeyAsync(CredentialsService.ANTHROPIC);
             
@@ -53,6 +71,44 @@ public partial class App : Application
             if (!string.IsNullOrWhiteSpace(openAiKey))
             {
                 openAiClient.SetApiKey(openAiKey);
+            }
+
+            var appConfig = await configService.LoadConfigAsync();
+
+            var supabaseKey = await credentialsService.GetApiKeyAsync(CredentialsService.SUPABASE);
+            if (!string.IsNullOrWhiteSpace(supabaseKey) && !string.IsNullOrWhiteSpace(appConfig.SupabaseUrl))
+            {
+                supabaseClient.SetApiKey(supabaseKey, appConfig.SupabaseUrl);
+                
+                if (appConfig.SelectedVectorStorage == Quade.Models.VectorStorageProvider.Supabase)
+                {
+                    try
+                    {
+                        await supabaseClient.EnsureReadyAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInfo($"Failed to initialize Supabase: {ex.Message}");
+                    }
+                }
+            }
+
+            var qdrantKey = await credentialsService.GetApiKeyAsync(CredentialsService.QDRANT);
+            if (!string.IsNullOrWhiteSpace(qdrantKey) && !string.IsNullOrWhiteSpace(appConfig.QdrantUrl))
+            {
+                qdrantClient.SetApiKey(qdrantKey, appConfig.QdrantUrl);
+                
+                if (appConfig.SelectedVectorStorage == Quade.Models.VectorStorageProvider.Qdrant)
+                {
+                    try
+                    {
+                        await qdrantClient.EnsureReadyAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInfo($"Failed to initialize Qdrant: {ex.Message}");
+                    }
+                }
             }
 
             var viewModel = new MainWindowViewModel(

@@ -518,7 +518,10 @@ public partial class MainWindow : Window
         {
             var settingsWindow = new SettingsWindow
             {
-                DataContext = new SettingsWindowViewModel(viewModel.CredentialsService, viewModel.GetAnthropicClient())
+                DataContext = new SettingsWindowViewModel(
+                    viewModel.CredentialsService, 
+                    viewModel.GetAnthropicClient(),
+                    viewModel.ConfigService)
             };
             
             await settingsWindow.ShowDialog(this);

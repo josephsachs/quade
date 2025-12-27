@@ -9,6 +9,8 @@ namespace Quade.Services;
 public class ChatMemoryStorer
 {
     private readonly ModelProviderResolver _providerResolver;
+    private readonly VectorProviderResolver _vectorProviderResolver;
+    private readonly VectorStorageResolver _vectorStorageResolver;
     private readonly ThoughtProcessLogger _logger;
     private readonly ConfigService _configService;
 
@@ -16,10 +18,14 @@ public class ChatMemoryStorer
 
     public ChatMemoryStorer(
         ModelProviderResolver providerResolver,
+        VectorProviderResolver vectorProviderResolver,
+        VectorStorageResolver vectorStorageResolver,
         ThoughtProcessLogger logger,
         ConfigService configService)
     {
         _providerResolver = providerResolver;
+        _vectorProviderResolver = vectorProviderResolver;
+        _vectorStorageResolver = vectorStorageResolver;
         _logger = logger;
         _configService = configService;
     }
@@ -31,7 +37,7 @@ public class ChatMemoryStorer
         if (!ShouldProcessMemories(unmemoizedMessages))
             return false;
 
-        _logger.LogInfo($"Processing {unmemoizedMessages.Count()} messages into memory...");
+        _logger.LogInfo($"Processing {unmemoizedMessages.Count} messages into memory...");
 
         var transcript = FormatAsTranscript(unmemoizedMessages);
         var summary = await GenerateMemorySummary(transcript);
@@ -43,10 +49,52 @@ public class ChatMemoryStorer
             return false;
         }
 
-        // TODO: Embed and store paragraphs
+        _logger.LogInfo($"Extracted {paragraphs.Count} paragraphs from summary");
 
-        MarkMessagesAsMemorized(allMessages);
-        return true;
+        var config = await _configService.LoadConfigAsync();
+        
+        if (string.IsNullOrEmpty(config.VectorModel))
+        {
+            _logger.LogInfo("No vector model configured, skipping embedding");
+            MarkMessagesAsMemorized(allMessages);
+            return false;
+        }
+
+        var vectorProvider = _vectorProviderResolver.GetProviderForModel(config.VectorModel);
+        var vectorStorage = _vectorStorageResolver.GetStorage(config.SelectedVectorStorage);
+
+        var successfulStores = 0;
+        foreach (var paragraph in paragraphs)
+        {
+            try
+            {
+                _logger.LogInfo($"Embedding paragraph: {paragraph.Substring(0, Math.Min(50, paragraph.Length))}...");
+                
+                var embedding = await vectorProvider.GetEmbeddingAsync(paragraph);
+                
+                _logger.LogInfo($"Storing memory with {embedding.Length}-dimensional embedding");
+                
+                await vectorStorage.StoreMemoryAsync(paragraph, embedding);
+                
+                successfulStores++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInfo($"Failed to store memory: {ex.Message}");
+            }
+        }
+
+        if (successfulStores > 0)
+        {
+            _logger.LogInfo($"Successfully stored {successfulStores}/{paragraphs.Count} memories");
+            MarkMessagesAsMemorized(allMessages);
+            return true;
+        }
+        else
+        {
+            _logger.LogInfo("Failed to store any memories, keeping messages unmarked for retry");
+            return false;
+        }
     }
 
     private List<Message> GetUnmemoizedMessages(List<Message> allMessages)
@@ -113,7 +161,6 @@ public class ChatMemoryStorer
 
     private List<string> ExtractParagraphs(string summary)
     {
-        // Sanity check for formatting violations
         if (summary.Contains("**") || summary.Contains("- ") || summary.Contains("1."))
         {
             _logger.LogInfo("Warning: Memory summary contains formatting markers");

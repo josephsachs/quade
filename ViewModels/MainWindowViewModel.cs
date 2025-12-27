@@ -19,6 +19,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly ThoughtProcessLogger _logger;
     private readonly ConversationService _conversationService;
     private readonly CredentialsService _credentialsService;
+    public ConfigService ConfigService => _configService;
 
     private string _inputMessage = string.Empty;
     private bool _isSending;

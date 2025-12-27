@@ -13,6 +13,7 @@ public class CredentialsService
     public const string OPENAI = "openai";
     public const string ANLATAN = "anlatan";
     public const string SUPABASE = "supabase";
+    public const string QDRANT = "qdrant";
 
     private readonly string _credentialsPath;
 
