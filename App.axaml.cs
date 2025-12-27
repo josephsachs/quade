@@ -29,11 +29,12 @@ public partial class App : Application
             var qdrantClient = new QdrantClient();
             var logger = new ThoughtProcessLogger();
             var conversationService = new ConversationService();
-            var contextBuilder = new ChatContextBuilder();
             
             var providerResolver = new ModelProviderResolver(anthropicClient, openAiClient);
             var vectorProviderResolver = new VectorProviderResolver(openAiClient);
             var vectorStorageResolver = new VectorStorageResolver(supabaseClient, qdrantClient);
+            
+            var contextBuilder = new ChatContextBuilder(vectorProviderResolver, vectorStorageResolver, configService, logger);
             
             var modeDetector = new ModeDetector(providerResolver, logger, configService);
             var chatMemoryStorer = new ChatMemoryStorer(
