@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Quade.Services;
 
-public class SupabaseClient
+public class SupabaseClient : IVectorStorage
 {
     private readonly HttpClient _httpClient;
     private string _supabaseUrl = string.Empty;
@@ -30,7 +30,7 @@ public class SupabaseClient
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
     }
 
-    public async Task EnsureTableExistsAsync()
+    public async Task EnsureReadyAsync()
     {
         if (_tableInitialized)
             return;
@@ -50,18 +50,9 @@ public class SupabaseClient
         }
 
         throw new HttpRequestException(
-            $"Table '{MEMORIES_TABLE}' does not exist. Please create it manually in Supabase SQL Editor:\n\n" +
-            $"CREATE EXTENSION IF NOT EXISTS vector;\n\n" +
-            $"CREATE TABLE IF NOT EXISTS {MEMORIES_TABLE} (\n" +
-            $"    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n" +
-            $"    content TEXT NOT NULL,\n" +
-            $"    embedding vector({VECTOR_DIMENSIONS}),\n" +
-            $"    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n" +
-            $");\n\n" +
-            $"CREATE INDEX IF NOT EXISTS {MEMORIES_TABLE}_embedding_idx \n" +
-            $"ON {MEMORIES_TABLE} \n" +
-            $"USING hnsw (embedding vector_cosine_ops);\n\n" +
-            $"ALTER TABLE {MEMORIES_TABLE} ENABLE ROW LEVEL SECURITY;"
+            $"Table '{MEMORIES_TABLE}' does not exist. Please create it manually in Supabase SQL Editor.\n\n" +
+            $"You must use index dimensions compatible with the selected vector embedding model. Mismatched " +
+            "settings will cause undefined behavior. See the Supabase and OpenAIs manual for detailed specs."
         );
     }
 
@@ -133,23 +124,29 @@ public class SupabaseClient
         }
 
         var responseJson = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<List<Memory>>(responseJson);
+        var result = JsonSerializer.Deserialize<List<SupabaseMemory>>(responseJson);
 
-        return result ?? new List<Memory>();
+        return result?.Select(m => new Memory
+        {
+            Id = m.Id.ToString(),
+            Content = m.Content,
+            CreatedAt = m.CreatedAt,
+            Similarity = m.Similarity
+        }).ToList() ?? new List<Memory>();
     }
-}
 
-public class Memory
-{
-    [JsonPropertyName("id")]
-    public Guid Id { get; set; }
+    private class SupabaseMemory
+    {
+        [JsonPropertyName("id")]
+        public Guid Id { get; set; }
 
-    [JsonPropertyName("content")]
-    public string Content { get; set; } = string.Empty;
+        [JsonPropertyName("content")]
+        public string Content { get; set; } = string.Empty;
 
-    [JsonPropertyName("created_at")]
-    public DateTime CreatedAt { get; set; }
+        [JsonPropertyName("created_at")]
+        public DateTime CreatedAt { get; set; }
 
-    [JsonPropertyName("similarity")]
-    public float Similarity { get; set; }
+        [JsonPropertyName("similarity")]
+        public float Similarity { get; set; }
+    }
 }

@@ -112,7 +112,8 @@ public class OpenAiClient : IModelProvider, IVectorProvider
         var request = new
         {
             input = text,
-            model = "text-embedding-3-small"
+            model = "text-embedding-3-large",
+            dimensions = 3072
         };
 
         var json = JsonSerializer.Serialize(request);

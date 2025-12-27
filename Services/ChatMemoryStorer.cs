@@ -10,7 +10,7 @@ public class ChatMemoryStorer
 {
     private readonly ModelProviderResolver _providerResolver;
     private readonly VectorProviderResolver _vectorProviderResolver;
-    private readonly SupabaseClient _supabaseClient;
+    private readonly VectorStorageResolver _vectorStorageResolver;
     private readonly ThoughtProcessLogger _logger;
     private readonly ConfigService _configService;
 
@@ -19,13 +19,13 @@ public class ChatMemoryStorer
     public ChatMemoryStorer(
         ModelProviderResolver providerResolver,
         VectorProviderResolver vectorProviderResolver,
-        SupabaseClient supabaseClient,
+        VectorStorageResolver vectorStorageResolver,
         ThoughtProcessLogger logger,
         ConfigService configService)
     {
         _providerResolver = providerResolver;
         _vectorProviderResolver = vectorProviderResolver;
-        _supabaseClient = supabaseClient;
+        _vectorStorageResolver = vectorStorageResolver;
         _logger = logger;
         _configService = configService;
     }
@@ -61,6 +61,7 @@ public class ChatMemoryStorer
         }
 
         var vectorProvider = _vectorProviderResolver.GetProviderForModel(config.VectorModel);
+        var vectorStorage = _vectorStorageResolver.GetStorage(config.SelectedVectorStorage);
 
         var successfulStores = 0;
         foreach (var paragraph in paragraphs)
@@ -73,7 +74,7 @@ public class ChatMemoryStorer
                 
                 _logger.LogInfo($"Storing memory with {embedding.Length}-dimensional embedding");
                 
-                await _supabaseClient.StoreMemoryAsync(paragraph, embedding);
+                await vectorStorage.StoreMemoryAsync(paragraph, embedding);
                 
                 successfulStores++;
             }
