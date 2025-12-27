@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Quade.Services;
 using Quade.ViewModels;
+using Quade.Models;
 
 namespace Quade.Views;
 
@@ -71,7 +72,7 @@ public partial class SettingsWindow : Window
         }
     }
 
-        private async void AddSupabaseKey_Click(object? sender, RoutedEventArgs e)
+    private async void AddSupabaseKey_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is SettingsWindowViewModel viewModel)
         {
@@ -79,11 +80,59 @@ public partial class SettingsWindow : Window
         }
     }
 
-        private async void DeleteSupabaseKey_Click(object? sender, RoutedEventArgs e)
+    private async void DeleteSupabaseKey_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is SettingsWindowViewModel viewModel)
         {
             await viewModel.DeleteKeyAsync(CredentialsService.SUPABASE);
+        }
+    }
+
+    private async void AddQdrantKey_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.AddOrReplaceKeyAsync(CredentialsService.QDRANT);
+        }
+    }
+
+    private async void DeleteQdrantKey_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.DeleteKeyAsync(CredentialsService.QDRANT);
+        }
+    }
+
+    private async void SaveSupabaseUrl_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.SaveSupabaseUrlAsync();
+        }
+    }
+
+    private async void SaveQdrantUrl_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.SaveQdrantUrlAsync();
+        }
+    }
+
+    private async void SelectSupabase_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.SelectStorageProviderAsync(VectorStorageProvider.Supabase);
+        }
+    }
+
+    private async void SelectQdrant_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.SelectStorageProviderAsync(VectorStorageProvider.Qdrant);
         }
     }
 }

@@ -25,15 +25,30 @@ public partial class App : Application
             var credentialsService = new CredentialsService();
             var anthropicClient = new AnthropicClient();
             var openAiClient = new OpenAiClient();
+            var supabaseClient = new SupabaseClient();
             var logger = new ThoughtProcessLogger();
             var conversationService = new ConversationService();
             var contextBuilder = new ChatContextBuilder();
             
             var providerResolver = new ModelProviderResolver(anthropicClient, openAiClient);
+            var vectorProviderResolver = new VectorProviderResolver(openAiClient);
             
             var modeDetector = new ModeDetector(providerResolver, logger, configService);
-            var chatMemoryStorer = new ChatMemoryStorer(providerResolver, logger, configService);
-            var chatService = new ChatService(providerResolver, modeDetector, chatMemoryStorer, configService, logger, contextBuilder);
+            var chatMemoryStorer = new ChatMemoryStorer(
+                providerResolver, 
+                vectorProviderResolver, 
+                supabaseClient, 
+                logger, 
+                configService
+            );
+            var chatService = new ChatService(
+                providerResolver, 
+                modeDetector, 
+                chatMemoryStorer, 
+                configService, 
+                logger, 
+                contextBuilder
+            );
 
             var hasApiKey = await credentialsService.HasApiKeyAsync(CredentialsService.ANTHROPIC);
             
@@ -53,6 +68,27 @@ public partial class App : Application
             if (!string.IsNullOrWhiteSpace(openAiKey))
             {
                 openAiClient.SetApiKey(openAiKey);
+            }
+
+            var supabaseKey = await credentialsService.GetApiKeyAsync(CredentialsService.SUPABASE);
+            if (!string.IsNullOrWhiteSpace(supabaseKey))
+            {
+                var appConfig = await configService.LoadConfigAsync();
+                var supabaseUrl = appConfig.SupabaseUrl;
+                
+                if (!string.IsNullOrWhiteSpace(supabaseUrl))
+                {
+                    supabaseClient.SetApiKey(supabaseKey, supabaseUrl);
+                    
+                    try
+                    {
+                        await supabaseClient.EnsureTableExistsAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInfo($"Failed to initialize Supabase: {ex.Message}");
+                    }
+                }
             }
 
             var viewModel = new MainWindowViewModel(

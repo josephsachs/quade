@@ -1,5 +1,11 @@
 namespace Quade.Models;
 
+public enum VectorStorageProvider
+{
+    Supabase,
+    Qdrant
+}
+
 public class AppConfig
 {
     public string ConversationalModel { get; set; } = "claude-sonnet-4-5-20250929";
@@ -7,6 +13,9 @@ public class AppConfig
     public string MemoryModel { get; set; } = string.Empty;
     public string VectorModel { get; set; } = string.Empty;
     public string SavedConversationsPath { get; set; } = "~/.quade/conversations/";
+    public VectorStorageProvider SelectedVectorStorage { get; set; } = VectorStorageProvider.Qdrant;
+    public string SupabaseUrl { get; set; } = string.Empty;
+    public string QdrantUrl { get; set; } = string.Empty;
     public string Theme { get; set; } = "dark";
     
     public double MainWindowX { get; set; }
