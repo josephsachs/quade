@@ -31,19 +31,19 @@ public class ChatMemoryStorer
         if (!ShouldProcessMemories(unmemoizedMessages))
             return false;
 
+        _logger.LogInfo($"Processing {unmemoizedMessages.Count()} messages into memory...");
+
         var transcript = FormatAsTranscript(unmemoizedMessages);
         var summary = await GenerateMemorySummary(transcript);
         var paragraphs = ExtractParagraphs(summary);
         
         if (paragraphs.Count == 0)
         {
-            _logger.LogInfo("No memorable content found in this conversation segment");
             MarkMessagesAsMemorized(allMessages);
             return false;
         }
 
         // TODO: Embed and store paragraphs
-        _logger.LogInfo($"Extracted {paragraphs.Count} memory entries for storage");
 
         MarkMessagesAsMemorized(allMessages);
         return true;
@@ -51,9 +51,7 @@ public class ChatMemoryStorer
 
     private List<Message> GetUnmemoizedMessages(List<Message> allMessages)
     {
-        var unmemoized = allMessages.Where(m => !m.IsMemorized).ToList();
-        _logger.LogInfo($"Found {unmemoized.Count} unmemoized messages");
-        return unmemoized;
+        return allMessages.Where(m => !m.IsMemorized).ToList();
     }
 
     private bool ShouldProcessMemories(List<Message> unmemoizedMessages)
@@ -63,8 +61,6 @@ public class ChatMemoryStorer
 
     private string FormatAsTranscript(List<Message> messages)
     {
-        _logger.LogInfo("Formatting conversation as transcript");
-        
         return string.Join("\n\n", messages.Select(m =>
         {
             var participant = m.IsUser ? "User" : "Assistant";
@@ -74,8 +70,6 @@ public class ChatMemoryStorer
 
     private async Task<string> GenerateMemorySummary(string transcript)
     {
-        _logger.LogInfo("Generating memory summary from transcript");
-
         var config = await _configService.LoadConfigAsync();
         var provider = _providerResolver.GetProviderForModel(config.MemoryModel);
 
@@ -96,6 +90,7 @@ public class ChatMemoryStorer
         };
 
         var response = await provider.SendMessageAsync(requestConfig, promptMessages);
+
         _logger.LogInfo($"{response}");
         
         return response;
@@ -129,8 +124,6 @@ public class ChatMemoryStorer
             .Select(p => p.Trim())
             .Where(p => !string.IsNullOrEmpty(p))
             .ToList();
-
-        _logger.LogInfo($"Extracted {paragraphs.Count} paragraphs from summary");
         
         return paragraphs;
     }
@@ -143,7 +136,5 @@ public class ChatMemoryStorer
             .Where(m => !m.IsMemorized)
             .ToList()
             .ForEach(m => m.IsMemorized = true);
-
-        _logger.LogInfo($"Marked {count} messages as memorized");
     }
 }
