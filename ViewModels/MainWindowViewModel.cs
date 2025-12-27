@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using Quade.Models;
 using Quade.Services;
+using System.Numerics;
 
 namespace Quade.ViewModels;
 
@@ -25,6 +26,7 @@ public class MainWindowViewModel : ViewModelBase
     private string _selectedModelId = string.Empty;
     private string _thoughtModel = string.Empty;
     private string _memoryModel = string.Empty;
+    private string _vectorModel = string.Empty;
     private string _errorMessage = string.Empty;
     private Message? _editingMessage;
 
@@ -77,7 +79,17 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public bool HasMemoryConfigured => !string.IsNullOrEmpty(MemoryModel);
+    public string VectorModel
+    {
+        get => _vectorModel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _vectorModel, value);
+            this.RaisePropertyChanged(nameof(HasMemoryConfigured));
+        }
+    }
+
+    public bool HasMemoryConfigured => !string.IsNullOrEmpty(MemoryModel) && !string.IsNullOrEmpty(VectorModel);
 
     public string ErrorMessage
     {
@@ -124,6 +136,7 @@ public class MainWindowViewModel : ViewModelBase
         SelectedModelId = config.ConversationalModel;
         ThoughtModel = config.ThoughtModel;
         MemoryModel = config.MemoryModel;
+        VectorModel = config.VectorModel;
     }
 
     public async Task RefreshModelsAsync()
@@ -135,7 +148,7 @@ public class MainWindowViewModel : ViewModelBase
             var anthropicModels = await _anthropicClient.GetAvailableModelsAsync();
             foreach (var model in anthropicModels)
             {
-                model.Categories = new List<string> { "chat", "thought" };
+                model.Categories = new List<string> { "chat", "thought", "memory" };
             }
             allModels.AddRange(anthropicModels);
             
@@ -189,6 +202,15 @@ public class MainWindowViewModel : ViewModelBase
         
         var config = await _configService.LoadConfigAsync();
         config.MemoryModel = modelId;
+        await _configService.SaveConfigAsync(config);
+    }
+
+    public async Task SelectVectorModelAsync(string modelId)
+    {
+        VectorModel = modelId;
+        
+        var config = await _configService.LoadConfigAsync();
+        config.VectorModel = modelId;
         await _configService.SaveConfigAsync(config);
     }
 

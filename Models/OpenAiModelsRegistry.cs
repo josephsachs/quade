@@ -31,47 +31,47 @@ public static class OpenAiModelRegistry
         ["gpt-4.1"] = new()
         {
             Endpoint = OpenAiEndpoint.ChatCompletions,
-            Categories = new() { "chat", "thought" }
+            Categories = new() { "chat", "thought", "memory" }
         },
         ["gpt-4.1-mini"] = new()
         {
             Endpoint = OpenAiEndpoint.ChatCompletions,
-            Categories = new() { "chat", "thought" }
+            Categories = new() { "chat", "thought", "memory" }
         },
         ["gpt-4.1-nano"] = new()
         {
             Endpoint = OpenAiEndpoint.ChatCompletions,
-            Categories = new() { "chat", "thought" }
+            Categories = new() { "chat", "thought", "memory" }
         },
         ["gpt-4o"] = new()
         {
             Endpoint = OpenAiEndpoint.ChatCompletions,
-            Categories = new() { "chat", "thought" }
+            Categories = new() { "chat", "thought", "memory" }
         },
         ["gpt-4o-mini"] = new()
         {
             Endpoint = OpenAiEndpoint.ChatCompletions,
-            Categories = new() { "chat", "thought" }
+            Categories = new() { "chat", "thought", "memory" }
         },
         ["gpt-3.5-turbo"] = new()
         {
             Endpoint = OpenAiEndpoint.ChatCompletions,
-            Categories = new() { "chat", "thought" }
+            Categories = new() { "chat", "thought", "memory" }
         },
         ["text-embedding-3-large"] = new()
         {
             Endpoint = OpenAiEndpoint.Embeddings,
-            Categories = new() { "memory" }
+            Categories = new() { "vector" }
         },
         ["text-embedding-3-small"] = new()
         {
             Endpoint = OpenAiEndpoint.Embeddings,
-            Categories = new() { "memory" }
+            Categories = new() { "vector" }
         },
         ["text-embedding-ada-002"] = new()
         {
             Endpoint = OpenAiEndpoint.Embeddings,
-            Categories = new() { "memory" }
+            Categories = new() { "vector" }
         }
     };
 

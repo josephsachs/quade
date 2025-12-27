@@ -12,6 +12,7 @@ public class Message : ReactiveObject
     private bool _isPending;
     private bool _isEditing;
     private bool _isFocused;
+    private bool _isMemorized;
 
     public string Content
     {
@@ -73,6 +74,16 @@ public class Message : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _isFocused, value);
+            this.RaisePropertyChanged(nameof(ShowEditButton));
+        }
+    }
+
+    public bool IsMemorized
+    {
+        get => _isMemorized;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isMemorized, value);
             this.RaisePropertyChanged(nameof(ShowEditButton));
         }
     }
