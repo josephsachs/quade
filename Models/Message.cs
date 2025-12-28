@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 using ReactiveUI;
 
 namespace Quade.Models;
@@ -14,12 +15,14 @@ public class Message : ReactiveObject
     private bool _isFocused;
     private bool _isMemorized;
 
+    [JsonPropertyName("Content")]
     public string Content
     {
         get => _content;
         set => this.RaiseAndSetIfChanged(ref _content, value);
     }
 
+    [JsonPropertyName("IsUser")]
     public bool IsUser
     {
         get => _isUser;
@@ -31,6 +34,7 @@ public class Message : ReactiveObject
         }
     }
 
+    [JsonPropertyName("Mode")]
     public ConversationMode Mode
     {
         get => _mode;
@@ -41,12 +45,25 @@ public class Message : ReactiveObject
         }
     }
 
+    [JsonPropertyName("Timestamp")]
     public DateTime Timestamp
     {
         get => _timestamp;
         set => this.RaiseAndSetIfChanged(ref _timestamp, value);
     }
 
+    [JsonPropertyName("IsMemorized")]
+    public bool IsMemorized
+    {
+        get => _isMemorized;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isMemorized, value);
+            this.RaisePropertyChanged(nameof(ShowEditButton));
+        }
+    }
+
+    [JsonIgnore]
     public bool IsPending
     {
         get => _isPending;
@@ -57,6 +74,7 @@ public class Message : ReactiveObject
         }
     }
 
+    [JsonIgnore]
     public bool IsEditing
     {
         get => _isEditing;
@@ -68,6 +86,7 @@ public class Message : ReactiveObject
         }
     }
 
+    [JsonIgnore]
     public bool IsFocused
     {
         get => _isFocused;
@@ -78,20 +97,13 @@ public class Message : ReactiveObject
         }
     }
 
-    public bool IsMemorized
-    {
-        get => _isMemorized;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _isMemorized, value);
-            this.RaisePropertyChanged(nameof(ShowEditButton));
-        }
-    }
-
+    [JsonIgnore]
     public bool ShowEditButton => IsUser && (IsFocused || IsEditing);
 
+    [JsonIgnore]
     public string EditButtonIcon => IsEditing ? "✓" : "✏️";
 
+    [JsonIgnore]
     public string IconText => IsPending ? "" : (IsUser ? "私" : Mode switch
     {
         ConversationMode.Empower => "力",
@@ -102,5 +114,6 @@ public class Message : ReactiveObject
         _ => "?"
     });
 
+    [JsonIgnore]
     public string IconColor => IsUser ? "#A8A8A8" : "#90EE90";
 }

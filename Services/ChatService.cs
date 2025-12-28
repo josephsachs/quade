@@ -13,6 +13,7 @@ public class ChatService
     private readonly ConfigService _configService;
     private readonly ThoughtProcessLogger _logger;
     private readonly ChatContextBuilder _contextBuilder;
+    private readonly ConversationService _conversationService;
 
     private List<Message> _messages = new();
     private ConversationMode _currentMode = ConversationMode.Empower;
@@ -26,7 +27,8 @@ public class ChatService
         ChatMemoryStorer chatMemoryStorer,
         ConfigService configService,
         ThoughtProcessLogger logger,
-        ChatContextBuilder contextBuilder)
+        ChatContextBuilder contextBuilder,
+        ConversationService conversationService)
     {
         _providerResolver = providerResolver;
         _modeDetector = modeDetector;
@@ -34,6 +36,7 @@ public class ChatService
         _configService = configService;
         _logger = logger;
         _contextBuilder = contextBuilder;
+        _conversationService = conversationService;
     }
 
     public async Task<(Message response, ConversationMode newMode)> SendMessageAsync(string userMessage)
@@ -53,7 +56,13 @@ public class ChatService
         var newMode = await _modeDetector.DetectMode(_messages);
         _currentMode = newMode;
 
-        var systemPrompt = ModeDetector.GetSystemPromptForMode(newMode);
+        // Get the mode-specific instruction text
+        var modePrompt = ModeDetector.GetSystemPromptForMode(newMode);
+        
+        // Build the full system prompt with instructions and memories in XML format
+        var systemPrompt = await _contextBuilder.BuildSystemPromptAsync(modePrompt, userMessage);
+        
+        // Log the final augmented prompt
         _logger.LogSystemPrompt(newMode, systemPrompt);
 
         var contextMessages = _contextBuilder.BuildContext(_messages);
@@ -81,9 +90,12 @@ public class ChatService
 
         _messages.Add(responseMsg);
 
-        // No return for now
-        // Maybe return the result for vector embedding, or something or ? or whatever
-        await _chatMemoryStorer.ProcessMemories(_messages);
+        var memoriesWereStored = await _chatMemoryStorer.ProcessMemories(_messages);
+        
+        if (memoriesWereStored)
+        {
+            await _conversationService.AutoSaveAsync(_messages, _currentMode);
+        }
 
         return (responseMsg, newMode);
     }

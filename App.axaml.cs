@@ -50,7 +50,8 @@ public partial class App : Application
                 chatMemoryStorer, 
                 configService, 
                 logger, 
-                contextBuilder
+                contextBuilder,
+                conversationService  // <- Added this parameter
             );
 
             var hasApiKey = await credentialsService.HasApiKeyAsync(CredentialsService.ANTHROPIC);

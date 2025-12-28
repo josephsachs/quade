@@ -37,15 +37,19 @@ public class ChatContextBuilder
         return allMessages.TakeLast(MAX_CONTEXT_MESSAGES).ToList();
     }
 
-    public async Task<string> AugmentSystemPromptWithMemories(string baseSystemPrompt, string userMessage)
+    public async Task<string> BuildSystemPromptAsync(string modePrompt, string userMessage)
     {
         var config = await _configService.LoadConfigAsync();
 
+        // Start with the mode instructions
+        var systemPrompt = $"<instructions>\n{modePrompt}\n</instructions>";
+
+        // Try to retrieve and add memories
         if (string.IsNullOrEmpty(config.VectorModel) || 
             string.IsNullOrEmpty(config.MemoryModel))
         {
             _logger.LogInfo("Memory system not configured, skipping memory retrieval");
-            return baseSystemPrompt;
+            return systemPrompt;
         }
 
         try
@@ -59,7 +63,7 @@ public class ChatContextBuilder
             if (memories.Count == 0)
             {
                 _logger.LogInfo("No memories found for current query");
-                return baseSystemPrompt;
+                return systemPrompt;
             }
 
             _logger.LogInfo($"Retrieved {memories.Count} memories:");
@@ -68,24 +72,29 @@ public class ChatContextBuilder
                 _logger.LogInfo($"  - [{memory.Similarity:F3}] {TruncateForLog(memory.Content)}");
             }
 
-            var memoryBlock = FormatMemoriesForPrompt(memories);
-            return $"{baseSystemPrompt}\n\n{memoryBlock}\n\nUse these memories to inform your response when relevant.";
+            // Add memories in XML format
+            var memoryXml = FormatMemoriesAsXml(memories);
+            systemPrompt += $"\n\n{memoryXml}";
+
+            return systemPrompt;
         }
         catch (System.Exception ex)
         {
             _logger.LogInfo($"Memory retrieval failed: {ex.Message}");
-            return baseSystemPrompt;
+            return systemPrompt;
         }
     }
 
-    private string FormatMemoriesForPrompt(List<Memory> memories)
+    private string FormatMemoriesAsXml(List<Memory> memories)
     {
-        var lines = new List<string> { "Relevant memories from past conversations:" };
+        var lines = new List<string> { "<memories>" };
         
         foreach (var memory in memories)
         {
-            lines.Add($"- {memory.Content}");
+            lines.Add($"<memory>{memory.Content}</memory>");
         }
+
+        lines.Add("</memories>");
 
         return string.Join("\n", lines);
     }
