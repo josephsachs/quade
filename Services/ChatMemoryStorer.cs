@@ -14,7 +14,7 @@ public class ChatMemoryStorer
     private readonly ThoughtProcessLogger _logger;
     private readonly ConfigService _configService;
 
-    private const int MEMORY_STORE_INTERVAL = 16;
+    private const int MEMORY_STORE_INTERVAL = 8;
 
     public ChatMemoryStorer(
         ModelProviderResolver providerResolver,
@@ -151,9 +151,9 @@ public class ChatMemoryStorer
 
             {{transcript}}
 
-            Review this conversation and extract only what's worth remembering - knowledge about the user, idiosyncratic definitions, significant insights, or notable events. Skip routine pleasantries and generic exchanges.
+            Review this conversation and extract only what's worth remembering - facts about the user, coinages or idiosyncratic definitions, insights, or interesting concepts. Skip routine pleasantries and generic exchanges. When noting assistant's own insights, note that the assistant originated them.
 
-            Write one paragraph per distinct topic, with as much or as little detail as that topic warrants. Separate paragraphs with a blank line.
+            Write one paragraph per distinct topic, summarized eloquently in 1-3 sentences, erring on the side of brevity. Separate paragraphs with a blank line.
 
             Do not use headings, bullet points, numbered lists, bold text, or any other formatting. Do not prefix paragraphs with labels like 'Topic:' or 'Memory:'. Just plain prose.
             """;

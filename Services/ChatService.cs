@@ -53,8 +53,7 @@ public class ChatService
         var newMode = await _modeDetector.DetectMode(_messages);
         _currentMode = newMode;
 
-        var baseSystemPrompt = ModeDetector.GetSystemPromptForMode(newMode);
-        var systemPrompt = await _contextBuilder.AugmentSystemPromptWithMemories(baseSystemPrompt, userMessage);
+        var systemPrompt = ModeDetector.GetSystemPromptForMode(newMode);
         _logger.LogSystemPrompt(newMode, systemPrompt);
 
         var contextMessages = _contextBuilder.BuildContext(_messages);
@@ -82,6 +81,8 @@ public class ChatService
 
         _messages.Add(responseMsg);
 
+        // No return for now
+        // Maybe return the result for vector embedding, or something or ? or whatever
         await _chatMemoryStorer.ProcessMemories(_messages);
 
         return (responseMsg, newMode);
