@@ -1,8 +1,8 @@
 ﻿using Avalonia;
 using System;
-using Quade;
+using Omoi;
 
-namespace quade;
+namespace Omoi;
 
 sealed class Program
 {

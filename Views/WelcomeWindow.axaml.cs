@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace Quade.Views;
+namespace Omoi.Views;
 
 public partial class WelcomeWindow : Window
 {

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Quade.Models;
+using Omoi.Models;
 
-namespace Quade.Services;
+namespace Omoi.Services;
 
 public class ChatMemoryStorer
 {

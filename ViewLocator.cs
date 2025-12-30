@@ -1,9 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Quade.ViewModels;
+using Omoi.ViewModels;
 
-namespace Quade;
+namespace Omoi;
 
 public class ViewLocator : IDataTemplate
 {

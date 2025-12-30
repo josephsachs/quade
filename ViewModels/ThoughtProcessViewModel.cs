@@ -1,8 +1,8 @@
 using System.Collections.ObjectModel;
-using Quade.Models;
-using Quade.Services;
+using Omoi.Models;
+using Omoi.Services;
 
-namespace Quade.ViewModels;
+namespace Omoi.ViewModels;
 
 public class ThoughtProcessViewModel : ViewModelBase
 {

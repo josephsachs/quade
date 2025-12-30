@@ -4,7 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 
-namespace Quade.Behaviors;
+namespace Omoi.Behaviors;
 
 public class PendingMessageBehavior : Behavior<TextBox>
 {

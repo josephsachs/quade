@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using ReactiveUI;
-using Quade.Services;
-using Quade.Models;
+using Omoi.Services;
+using Omoi.Models;
 
-namespace Quade.ViewModels;
+namespace Omoi.ViewModels;
 
 public class SettingsWindowViewModel : ViewModelBase
 {

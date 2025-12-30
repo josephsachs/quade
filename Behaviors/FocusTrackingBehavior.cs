@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
-using Quade.Models;
+using Omoi.Models;
 
-namespace Quade.Behaviors;
+namespace Omoi.Behaviors;
 
 public class FocusTrackingBehavior : Behavior<TextBox>
 {

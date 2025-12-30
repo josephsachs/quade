@@ -4,11 +4,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Quade.Services;
-using Quade.ViewModels;
-using Quade.Views;
+using Omoi.Services;
+using Omoi.ViewModels;
+using Omoi.Views;
 
-namespace Quade;
+namespace Omoi;
 
 public partial class App : Application
 {
@@ -81,7 +81,7 @@ public partial class App : Application
             {
                 supabaseClient.SetApiKey(supabaseKey, appConfig.SupabaseUrl);
                 
-                if (appConfig.SelectedVectorStorage == Quade.Models.VectorStorageProvider.Supabase)
+                if (appConfig.SelectedVectorStorage == Omoi.Models.VectorStorageProvider.Supabase)
                 {
                     try
                     {
@@ -99,7 +99,7 @@ public partial class App : Application
             {
                 qdrantClient.SetApiKey(qdrantKey, appConfig.QdrantUrl);
                 
-                if (appConfig.SelectedVectorStorage == Quade.Models.VectorStorageProvider.Qdrant)
+                if (appConfig.SelectedVectorStorage == Omoi.Models.VectorStorageProvider.Qdrant)
                 {
                     try
                     {

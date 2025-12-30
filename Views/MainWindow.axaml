@@ -1,12 +1,12 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Quade.ViewModels"
-        xmlns:models="using:Quade.Models"
-        xmlns:behaviors="using:Quade.Behaviors"
+        xmlns:vm="using:Omoi.ViewModels"
+        xmlns:models="using:Omoi.Models"
+        xmlns:behaviors="using:Omoi.Behaviors"
         xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-        x:Class="Quade.Views.MainWindow"
+        x:Class="Omoi.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Quade"
+        Title="Omoi"
         Width="1000" Height="750">
 
     <DockPanel>

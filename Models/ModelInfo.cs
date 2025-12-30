@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Quade.Models;
+namespace Omoi.Models;
 
 public class ModelInfo
 {

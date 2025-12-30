@@ -1,6 +1,6 @@
 ﻿using ReactiveUI;
 
-namespace Quade.ViewModels;
+namespace Omoi.ViewModels;
 
 public class ViewModelBase : ReactiveObject
 {

@@ -6,9 +6,9 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Quade.Models;
+using Omoi.Models;
 
-namespace Quade.Services;
+namespace Omoi.Services;
 
 public class ApiClient
 {

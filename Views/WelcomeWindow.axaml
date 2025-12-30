@@ -1,17 +1,17 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="Quade.Views.WelcomeWindow"
-        Title="Welcome to Quade"
+        x:Class="Omoi.Views.WelcomeWindow"
+        Title="Welcome to Omoi"
         Width="500" Height="250"
         CanResize="False"
         WindowStartupLocation="CenterScreen">
 
     <StackPanel Margin="20" Spacing="15">
-        <TextBlock Text="Welcome to Quade"
+        <TextBlock Text="Welcome to Omoi"
                    FontSize="18"
                    FontWeight="Bold"/>
         
-        <TextBlock Text="To use Quade, you'll need an Anthropic API key."
+        <TextBlock Text="To use Omoi, you'll need an Anthropic API key."
                    TextWrapping="Wrap"/>
         
         <TextBlock Text="Add your API key via:"

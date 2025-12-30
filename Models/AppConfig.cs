@@ -1,4 +1,4 @@
-namespace Quade.Models;
+namespace Omoi.Models;
 
 public enum VectorStorageProvider
 {
@@ -12,7 +12,7 @@ public class AppConfig
     public string ThoughtModel { get; set; } = "gpt-4.1-nano";
     public string MemoryModel { get; set; } = string.Empty;
     public string VectorModel { get; set; } = string.Empty;
-    public string SavedConversationsPath { get; set; } = "~/.quade/conversations/";
+    public string SavedConversationsPath { get; set; } = "~/.Omoi/conversations/";
     public VectorStorageProvider SelectedVectorStorage { get; set; } = VectorStorageProvider.Qdrant;
     public string SupabaseUrl { get; set; } = string.Empty;
     public string QdrantUrl { get; set; } = string.Empty;

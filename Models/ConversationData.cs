@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Quade.Models;
+namespace Omoi.Models;
 
 public class ConversationData
 {
