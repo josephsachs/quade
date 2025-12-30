@@ -7,8 +7,10 @@ namespace Quade.Services;
 
 public class ChatContextBuilder
 {
-    private const int MAX_CONTEXT_MESSAGES = 16;
-    private const int TOP_K_MEMORIES = 5;
+    private const int MAX_CONTEXT_MESSAGES = 14;
+    private const int TOP_K_MEMORIES = 4;
+
+    private const float SIMILARITY_THRESHOLD = 0.15f;
 
     private readonly VectorProviderResolver _vectorProviderResolver;
     private readonly VectorStorageResolver _vectorStorageResolver;
@@ -58,7 +60,7 @@ public class ChatContextBuilder
             var embedding = await vectorProvider.GetEmbeddingAsync(userMessage);
 
             var storage = _vectorStorageResolver.GetStorage(config.SelectedVectorStorage);
-            var memories = await storage.SearchSimilarMemoriesAsync(embedding, TOP_K_MEMORIES, threshold: 0.0f);
+            var memories = await storage.SearchSimilarMemoriesAsync(embedding, TOP_K_MEMORIES, threshold: SIMILARITY_THRESHOLD);
 
             if (memories.Count == 0)
             {

@@ -8,8 +8,8 @@ public enum VectorStorageProvider
 
 public class AppConfig
 {
-    public string ConversationalModel { get; set; } = "claude-sonnet-4-5-20250929";
-    public string ThoughtModel { get; set; } = "claude-3-5-haiku-20241022";
+    public string ConversationalModel { get; set; } = "claude-sonnet-4-20250514";
+    public string ThoughtModel { get; set; } = "gpt-4.1-nano";
     public string MemoryModel { get; set; } = string.Empty;
     public string VectorModel { get; set; } = string.Empty;
     public string SavedConversationsPath { get; set; } = "~/.quade/conversations/";
