@@ -151,7 +151,11 @@ public class ChatMemoryStorer
 
             {{transcript}}
 
-            Review this conversation and extract only what's worth remembering - facts about the user, coinages or idiosyncratic definitions, insights, or interesting concepts. Skip routine pleasantries, generic exchanges and minor events. When noting assistant's own insights, note that the assistant originated them.
+            Review this conversation and extract only what's worth remembering - facts, coinages or idiosyncratic definitions, insights, or interesting concepts. 
+            
+            Skip routine pleasantries. When the user shares an event, skip trivial or isolated ones, retain those that have explanatory power. Ignore humorous flights and sarcastic remark unless they are built upon fruitfully. Skip most trivial facts about the user, preserve those that are either personal talismans or have thematic relevance.
+            
+            When noting assistant's own insights, note that the assistant originated them.
 
             Write one paragraph per distinct topic, summarized eloquently in 1-3 sentences, erring on the side of brevity. Separate paragraphs with a blank line. Max 4 items.
 
