@@ -11,19 +11,19 @@ public class ModeDetector
     private readonly ThoughtProcessLogger _logger;
     private readonly ConfigService _configService;
 
-    private const string MODE_SELECT_IS_QUESTION = @"Is the user asking a question?";
+    private const string MODE_SELECT_IS_QUESTION = @"Is the user's message a question, whether formed as an inquiry or implying the main goal is to arrive at an answer?";
 
-    private const string MODE_SELECT_IS_STATEMENT_CLEAR = @"Is the user's meaning clear enough to respond to with confidence?";
+    private const string MODE_SELECT_IS_STATEMENT_CLEAR = @"Is the user's meaning clear enough to respond to with confidence? Are more facts, clarifications or definitions required?";
 
-    private const string MODE_SELECT_IS_INFORMATIONAL = @"Is the user's question informational?";
+    private const string MODE_SELECT_IS_INFORMATIONAL = @"Is the user's question fundamentally informational: is it about rational, factual or operational topics? Does it seem instrumental to a purpose rather than being the topic itself?";
 
-    private const string MODE_SELECT_IS_PERSONAL = @"Is the user's statement personal?";
+    private const string MODE_SELECT_IS_PERSONAL = @"Is the user's statement personal: is it about emotions, subjectivity, reminiscences, preferences, personal judgments or pet peeves?";
 
-    private const string MODE_SELECT_IS_CASUAL = @"Is the user's statement casual?";
+    private const string MODE_SELECT_IS_CASUAL = @"Is the user's statement casual, intended as social fodder or conversational back-and-forth?";
 
-    private const string MODE_SELECT_IS_JOKING = @"Is the user joking or being silly?";
+    private const string MODE_SELECT_IS_JOKING = @"Is the user's message witty, ironical, joking, distanced or being silly? Disregarding dark sarcasm, obvious bleakness and aggrieved self-deprecation.";
 
-    private const string MODE_SELECT_IS_PLAN = @"Does the user's statement a plan or course of action?";
+    private const string MODE_SELECT_IS_PLAN = @"Does the user's statement a plan or course of action? Does it imply a plan or course of action?";
 
     private const string MODE_SELECT_IS_REASONABLE = @"Is the user's statement reasonable and safe?";
 
