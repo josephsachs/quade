@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Quade.Services;
-using Quade.ViewModels;
-using Quade.Models;
+using Omoi.Services;
+using Omoi.ViewModels;
+using Omoi.Models;
 
-namespace Quade.Views;
+namespace Omoi.Views;
 
 public partial class SettingsWindow : Window
 {

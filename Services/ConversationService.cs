@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Quade.Models;
+using Omoi.Models;
 
-namespace Quade.Services;
+namespace Omoi.Services;
 
 public class ConversationService
 {
@@ -15,7 +15,7 @@ public class ConversationService
     public ConversationService()
     {
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        _conversationsDir = Path.Combine(home, ".quade", "conversations");
+        _conversationsDir = Path.Combine(home, ".omoi", "conversations");
         _autoSavePath = Path.Combine(_conversationsDir, "autosave.json");
         
         Directory.CreateDirectory(_conversationsDir);

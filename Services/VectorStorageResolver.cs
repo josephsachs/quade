@@ -1,7 +1,7 @@
 using System;
-using Quade.Models;
+using Omoi.Models;
 
-namespace Quade.Services;
+namespace Omoi.Services;
 
 public class VectorStorageResolver
 {

@@ -2,7 +2,7 @@ using System;
 using System.Text.Json.Serialization;
 using ReactiveUI;
 
-namespace Quade.Models;
+namespace Omoi.Models;
 
 public class Message : ReactiveObject
 {

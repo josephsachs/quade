@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Quade.Services;
+namespace Omoi.Services;
 
 public class CredentialsService
 {
@@ -20,7 +20,7 @@ public class CredentialsService
     public CredentialsService()
     {
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var configDir = Path.Combine(home, ".quade");
+        var configDir = Path.Combine(home, ".omoi");
         _credentialsPath = Path.Combine(configDir, "credentials.json");
         
         Directory.CreateDirectory(configDir);

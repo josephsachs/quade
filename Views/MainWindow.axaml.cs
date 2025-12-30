@@ -8,11 +8,11 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using Quade.Models;
-using Quade.Services;
-using Quade.ViewModels;
+using Omoi.Models;
+using Omoi.Services;
+using Omoi.ViewModels;
 
-namespace Quade.Views;
+namespace Omoi.Views;
 
 public partial class MainWindow : Window
 {

@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Quade.Services;
+namespace Omoi.Services;
 
 public interface IVectorProvider
 {

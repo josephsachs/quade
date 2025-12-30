@@ -4,11 +4,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
-using Quade.Models;
-using Quade.Services;
+using Omoi.Models;
+using Omoi.Services;
 using System.Numerics;
 
-namespace Quade.ViewModels;
+namespace Omoi.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {

@@ -1,8 +1,8 @@
 using System.Collections.Specialized;
 using Avalonia.Controls;
-using Quade.ViewModels;
+using Omoi.ViewModels;
 
-namespace Quade.Views;
+namespace Omoi.Views;
 
 public partial class ThoughtProcessWindow : Window
 {

@@ -4,9 +4,9 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
-using Quade.Models;
+using Omoi.Models;
 
-namespace Quade.Services;
+namespace Omoi.Services;
 
 public class ConfigService
 {
@@ -17,7 +17,7 @@ public class ConfigService
     public ConfigService()
     {
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        _configDir = Path.Combine(home, ".quade");
+        _configDir = Path.Combine(home, ".omoi");
         _configPath = Path.Combine(_configDir, "config.json");
         _modelsPath = Path.Combine(_configDir, "models.json");
     }

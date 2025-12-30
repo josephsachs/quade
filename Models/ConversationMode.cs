@@ -1,4 +1,4 @@
-namespace Quade.Models;
+namespace Omoi.Models;
 
 public enum ConversationMode
 {

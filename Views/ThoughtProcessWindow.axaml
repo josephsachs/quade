@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Quade.ViewModels"
-        xmlns:models="using:Quade.Models"
-        x:Class="Quade.Views.ThoughtProcessWindow"
+        xmlns:vm="using:Omoi.ViewModels"
+        xmlns:models="using:Omoi.Models"
+        x:Class="Omoi.Views.ThoughtProcessWindow"
         x:DataType="vm:ThoughtProcessViewModel"
         Title="Thought Process"
         Width="700" Height="500">

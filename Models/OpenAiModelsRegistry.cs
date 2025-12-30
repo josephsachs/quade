@@ -10,7 +10,7 @@
 
 using System.Collections.Generic;
 
-namespace Quade.Models;
+namespace Omoi.Models;
 
 public enum OpenAiEndpoint
 {

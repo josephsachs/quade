@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "quade", "quade.csproj", "{19FFC9CD-A185-E424-404F-32C53BF37B44}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Omoi", "omoi.csproj", "{19FFC9CD-A185-E424-404F-32C53BF37B44}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
