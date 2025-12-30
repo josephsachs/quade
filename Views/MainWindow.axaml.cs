@@ -21,6 +21,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        
+        this.Icon = new WindowIcon("icon.ico");
+
         Closing += OnWindowClosing;
         
         AddHandler(KeyDownEvent, OnKeyDownTunnel, RoutingStrategies.Tunnel);
