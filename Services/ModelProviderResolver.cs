@@ -7,11 +7,13 @@ public class ModelProviderResolver
 {
     private readonly IModelProvider _anthropicProvider;
     private readonly IModelProvider _openAiProvider;
+    private readonly IModelProvider _deepSeekProvider;
 
-    public ModelProviderResolver(IModelProvider anthropicProvider, IModelProvider openAiProvider)
+    public ModelProviderResolver(IModelProvider anthropicProvider, IModelProvider openAiProvider, IModelProvider deepSeekProvider)
     {
         _anthropicProvider = anthropicProvider;
         _openAiProvider = openAiProvider;
+        _deepSeekProvider = deepSeekProvider;
     }
 
     public IModelProvider GetProviderForModel(string modelId)
@@ -19,6 +21,11 @@ public class ModelProviderResolver
         if (modelId.StartsWith("claude-", StringComparison.OrdinalIgnoreCase))
         {
             return _anthropicProvider;
+        }
+
+        if (modelId.StartsWith("deepseek-", StringComparison.OrdinalIgnoreCase))
+        {
+            return _deepSeekProvider;
         }
 
         if (OpenAiModelRegistry.IsSupported(modelId))

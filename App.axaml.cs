@@ -25,12 +25,13 @@ public partial class App : Application
             var credentialsService = new CredentialsService();
             var anthropicClient = new AnthropicClient();
             var openAiClient = new OpenAiClient();
+            var deepSeekClient = new DeepSeekClient();
             var supabaseClient = new SupabaseClient();
             var qdrantClient = new QdrantClient();
             var logger = new ThoughtProcessLogger();
             var conversationService = new ConversationService();
             
-            var providerResolver = new ModelProviderResolver(anthropicClient, openAiClient);
+            var providerResolver = new ModelProviderResolver(anthropicClient, openAiClient, deepSeekClient);
             var vectorProviderResolver = new VectorProviderResolver(openAiClient);
             var vectorStorageResolver = new VectorStorageResolver(supabaseClient, qdrantClient);
             
@@ -51,7 +52,7 @@ public partial class App : Application
                 configService, 
                 logger, 
                 contextBuilder,
-                conversationService  // <- Added this parameter
+                conversationService
             );
 
             var hasApiKey = await credentialsService.HasApiKeyAsync(CredentialsService.ANTHROPIC);
@@ -72,6 +73,12 @@ public partial class App : Application
             if (!string.IsNullOrWhiteSpace(openAiKey))
             {
                 openAiClient.SetApiKey(openAiKey);
+            }
+
+            var deepSeekKey = await credentialsService.GetApiKeyAsync(CredentialsService.DEEPSEEK);
+            if (!string.IsNullOrWhiteSpace(deepSeekKey))
+            {
+                deepSeekClient.SetApiKey(deepSeekKey);
             }
 
             var appConfig = await configService.LoadConfigAsync();
@@ -117,6 +124,7 @@ public partial class App : Application
                 configService, 
                 anthropicClient,
                 openAiClient,
+                deepSeekClient,
                 logger, 
                 conversationService,
                 credentialsService);

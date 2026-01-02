@@ -3,7 +3,7 @@ v1.0
 
 **Omoi** is an experimental chatbot intended for casual, speculative and intellectual conversation. It uses *modes* to promote flexibility and provide a responsive style of speech and analysis. Mode determines the system prompt for the current generation. The aim of Omoi is to serve as an alternative to the increasingly task- and information-focused styles of the official chatbots.
 
-Omoi is built in Avalonia and uses Anthropic and OpenAI models to converse, think about messages, summarize and store memories. All generation and data storage uses external APIs. The application must be configured with at least one API key for a language model provider before it can be used (Settings → Integrations). Omoi works with the user's own accounts and token budgets.
+Omoi is built in Avalonia and uses Anthropic, OpenAI and DeepSeek models to converse, think about messages, summarize and store memories. All generation and data storage uses external APIs. The application must be configured with at least one API key for a language model provider before it can be used (Settings → Integrations). Omoi works with the user's own accounts and token budgets.
 
 Optional vector memory can be configured using:
 - **Qdrant** (recommended) - Supports `text-embedding-3-large` model with 3072 dimensions for maximum quality

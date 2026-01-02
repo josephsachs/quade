@@ -5,7 +5,7 @@
         x:Class="Omoi.Views.SettingsWindow"
         x:DataType="vm:SettingsWindowViewModel"
         Title="Settings"
-        Width="650" Height="850"
+        Width="650" Height="900"
         WindowStartupLocation="CenterOwner">
 
     <TabControl>
@@ -70,6 +70,34 @@
                                         PasswordChar="•"/>
                                 <Button Content="Add" 
                                        Click="AddOpenaiKey_Click"
+                                       HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- DeepSeek -->
+                    <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="DeepSeek" FontWeight="Bold" FontSize="14"/>
+                            
+                            <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasDeepseekKey}">
+                                <TextBlock Grid.Column="0" Text="Current Key:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="1" 
+                                          Text="{Binding DeepseekKeyDisplay}" 
+                                          VerticalAlignment="Center"
+                                          FontFamily="Consolas,Courier New,monospace"/>
+                                <Button Grid.Column="2" 
+                                       Content="Delete" 
+                                       Click="DeleteDeepseekKey_Click"
+                                       Margin="10,0,0,0"/>
+                            </Grid>
+                            
+                            <StackPanel Spacing="10" IsVisible="{Binding !HasDeepseekKey}">
+                                <TextBox Text="{Binding DeepseekKeyInput}" 
+                                        Watermark="sk-..."
+                                        PasswordChar="•"/>
+                                <Button Content="Add" 
+                                       Click="AddDeepseekKey_Click"
                                        HorizontalAlignment="Right"/>
                             </StackPanel>
                         </StackPanel>

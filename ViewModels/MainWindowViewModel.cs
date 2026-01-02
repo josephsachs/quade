@@ -16,6 +16,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly ConfigService _configService;
     private readonly AnthropicClient _anthropicClient;
     private readonly OpenAiClient _openAiClient;
+    private readonly DeepSeekClient _deepSeekClient;
     private readonly ThoughtProcessLogger _logger;
     private readonly ConversationService _conversationService;
     private readonly CredentialsService _credentialsService;
@@ -39,6 +40,7 @@ public class MainWindowViewModel : ViewModelBase
     
     public AnthropicClient GetAnthropicClient() => _anthropicClient;
     public OpenAiClient GetOpenAiClient() => _openAiClient;
+    public DeepSeekClient GetDeepSeekClient() => _deepSeekClient;
 
     public string InputMessage
     {
@@ -103,6 +105,7 @@ public class MainWindowViewModel : ViewModelBase
         ConfigService configService,
         AnthropicClient anthropicClient,
         OpenAiClient openAiClient,
+        DeepSeekClient deepSeekClient,
         ThoughtProcessLogger logger,
         ConversationService conversationService,
         CredentialsService credentialsService)
@@ -111,6 +114,7 @@ public class MainWindowViewModel : ViewModelBase
         _configService = configService;
         _anthropicClient = anthropicClient;
         _openAiClient = openAiClient;
+        _deepSeekClient = deepSeekClient;
         _logger = logger;
         _conversationService = conversationService;
         _credentialsService = credentialsService;
@@ -162,6 +166,18 @@ public class MainWindowViewModel : ViewModelBase
                     _openAiClient.SetApiKey(openAiKey);
                     var openAiModels = await _openAiClient.GetAvailableModelsAsync();
                     allModels.AddRange(openAiModels);
+                }
+            }
+            
+            var hasDeepSeekKey = await _credentialsService.HasApiKeyAsync(CredentialsService.DEEPSEEK);
+            if (hasDeepSeekKey)
+            {
+                var deepSeekKey = await _credentialsService.GetApiKeyAsync(CredentialsService.DEEPSEEK);
+                if (!string.IsNullOrWhiteSpace(deepSeekKey))
+                {
+                    _deepSeekClient.SetApiKey(deepSeekKey);
+                    var deepSeekModels = await _deepSeekClient.GetAvailableModelsAsync();
+                    allModels.AddRange(deepSeekModels);
                 }
             }
             

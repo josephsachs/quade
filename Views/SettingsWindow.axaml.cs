@@ -56,6 +56,22 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private async void AddDeepseekKey_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.AddOrReplaceKeyAsync(CredentialsService.DEEPSEEK);
+        }
+    }
+
+    private async void DeleteDeepseekKey_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsWindowViewModel viewModel)
+        {
+            await viewModel.DeleteKeyAsync(CredentialsService.DEEPSEEK);
+        }
+    }
+
     private async void AddAnlatanKey_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is SettingsWindowViewModel viewModel)

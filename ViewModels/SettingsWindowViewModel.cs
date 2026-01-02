@@ -14,18 +14,21 @@ public class SettingsWindowViewModel : ViewModelBase
 
     private string _anthropicKeyDisplay = "(not set)";
     private string _openaiKeyDisplay = "(not set)";
+    private string _deepseekKeyDisplay = "(not set)";
     private string _anlatanKeyDisplay = "(not set)";
     private string _supabaseKeyDisplay = "(not set)";
     private string _qdrantKeyDisplay = "(not set)";
 
     private bool _hasAnthropicKey;
     private bool _hasOpenaiKey;
+    private bool _hasDeepseekKey;
     private bool _hasAnlatanKey;
     private bool _hasSupabaseKey;
     private bool _hasQdrantKey;
 
     private string _anthropicKeyInput = string.Empty;
     private string _openaiKeyInput = string.Empty;
+    private string _deepseekKeyInput = string.Empty;
     private string _anlatanKeyInput = string.Empty;
     private string _supabaseKeyInput = string.Empty;
     private string _qdrantKeyInput = string.Empty;
@@ -46,6 +49,12 @@ public class SettingsWindowViewModel : ViewModelBase
     {
         get => _openaiKeyDisplay;
         set => this.RaiseAndSetIfChanged(ref _openaiKeyDisplay, value);
+    }
+
+    public string DeepseekKeyDisplay
+    {
+        get => _deepseekKeyDisplay;
+        set => this.RaiseAndSetIfChanged(ref _deepseekKeyDisplay, value);
     }
 
     public string AnlatanKeyDisplay
@@ -78,6 +87,12 @@ public class SettingsWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _hasOpenaiKey, value);
     }
 
+    public bool HasDeepseekKey
+    {
+        get => _hasDeepseekKey;
+        set => this.RaiseAndSetIfChanged(ref _hasDeepseekKey, value);
+    }
+
     public bool HasAnlatanKey
     {
         get => _hasAnlatanKey;
@@ -106,6 +121,12 @@ public class SettingsWindowViewModel : ViewModelBase
     {
         get => _openaiKeyInput;
         set => this.RaiseAndSetIfChanged(ref _openaiKeyInput, value);
+    }
+
+    public string DeepseekKeyInput
+    {
+        get => _deepseekKeyInput;
+        set => this.RaiseAndSetIfChanged(ref _deepseekKeyInput, value);
     }
 
     public string AnlatanKeyInput
@@ -161,6 +182,7 @@ public class SettingsWindowViewModel : ViewModelBase
     {
         await UpdateKeyDisplayAsync(CredentialsService.ANTHROPIC);
         await UpdateKeyDisplayAsync(CredentialsService.OPENAI);
+        await UpdateKeyDisplayAsync(CredentialsService.DEEPSEEK);
         await UpdateKeyDisplayAsync(CredentialsService.ANLATAN);
         await UpdateKeyDisplayAsync(CredentialsService.SUPABASE);
         await UpdateKeyDisplayAsync(CredentialsService.QDRANT);
@@ -212,6 +234,7 @@ public class SettingsWindowViewModel : ViewModelBase
         {
             CredentialsService.ANTHROPIC => AnthropicKeyInput,
             CredentialsService.OPENAI => OpenaiKeyInput,
+            CredentialsService.DEEPSEEK => DeepseekKeyInput,
             CredentialsService.ANLATAN => AnlatanKeyInput,
             CredentialsService.SUPABASE => SupabaseKeyInput,
             CredentialsService.QDRANT => QdrantKeyInput,
@@ -254,6 +277,10 @@ public class SettingsWindowViewModel : ViewModelBase
                 HasOpenaiKey = hasKey;
                 OpenaiKeyDisplay = display;
                 break;
+            case CredentialsService.DEEPSEEK:
+                HasDeepseekKey = hasKey;
+                DeepseekKeyDisplay = display;
+                break;
             case CredentialsService.ANLATAN:
                 HasAnlatanKey = hasKey;
                 AnlatanKeyDisplay = display;
@@ -278,6 +305,9 @@ public class SettingsWindowViewModel : ViewModelBase
                 break;
             case CredentialsService.OPENAI:
                 OpenaiKeyInput = string.Empty;
+                break;
+            case CredentialsService.DEEPSEEK:
+                DeepseekKeyInput = string.Empty;
                 break;
             case CredentialsService.ANLATAN:
                 AnlatanKeyInput = string.Empty;
