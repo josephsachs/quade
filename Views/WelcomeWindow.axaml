@@ -11,7 +11,7 @@
                    FontSize="18"
                    FontWeight="Bold"/>
         
-        <TextBlock Text="To use Omoi, you'll need an Anthropic API key."
+        <TextBlock Text="To use Omoi, you'll need at least one API key for a large language model provider."
                    TextWrapping="Wrap"/>
         
         <TextBlock Text="Add your API key via:"
