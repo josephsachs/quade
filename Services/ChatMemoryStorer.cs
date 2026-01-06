@@ -151,7 +151,7 @@ public class ChatMemoryStorer
 
             {{transcript}}
 
-            Extract idiosyncratic ideas, insights, or interesting concepts. Skip routine chitchat. Skip trivial events. Ignore jokes unless they're insightful. Err on the side of parsimony. Retain what has explanatory power. Skip most trivial facts about the user, preserve those that are either personal talismans or have thematic relevance.
+            Extract idiosyncratic ideas, insights, or interesting concepts. Skip routine chitchat. Skip transient events, or anything that will not make sense later, out of context. Ignore jokes unless they're insightful. Err on the side of parsimony. Retain what has explanatory power. Skip most trivial facts about the user, preserve those that are either personal talismans or have thematic relevance. If nothing meets the criteria, return blank.
             
             When noting assistant's own insights, note that the assistant originated them, but avoid recounting exchanges.
 

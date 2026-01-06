@@ -11,6 +11,7 @@ public class ModeDetector
     private readonly ThoughtProcessLogger _logger;
     private readonly ConfigService _configService;
 
+    private const string MODE_SELECT_IS_EMOTIONAL = @"Does the user's message contain significant emotional content?";
     private const string MODE_SELECT_IS_QUESTION = @"Is the user's message a question, whether formed as an inquiry or implying the main goal is to arrive at an answer?";
 
     private const string MODE_SELECT_IS_STATEMENT_CLEAR = @"Is the user's meaning clear enough to respond to with confidence? Are more facts, clarifications or definitions required?";
@@ -76,6 +77,54 @@ public class ModeDetector
         return false;
     }
 
+    public enum EmotionMode
+    {
+        Neutral,
+        Happy,
+        Angry,
+        Sad,
+        Anxious
+
+    }
+
+    public async Task<EmotionMode> DetectEmotion(List<Message> message)
+    {
+        var config = await _configService.LoadConfigAsync();
+        var provider = _providerResolver.GetProviderForModel(config.ThoughtModel);
+
+        for (var attempts = 0; attempts < 4; attempts++)
+        {
+            var requestConfig = new ModelRequestConfig
+            {
+                Model = config.ThoughtModel,
+                MaxTokens = 16
+            };
+
+            var response = await provider.SendMessageAsync(
+                requestConfig,
+                message,
+                $"Classify the emotion of the message as HAPPY, SAD, ANGRY or ANXIOUS; use best guess."
+            );
+
+            _logger.LogInfo($"Emotion classified: {response}");
+
+            var result = response?.ToUpperInvariant() switch 
+            {
+                "HAPPY" => EmotionMode.Happy,
+                "SAD" => EmotionMode.Sad,
+                "ANGRY" => EmotionMode.Angry,
+                "ANXIOUS" => EmotionMode.Anxious,
+                _ => EmotionMode.Neutral
+            };
+
+            if (result != EmotionMode.Neutral) return result;
+        }
+
+        _logger.LogModeResponse("Tried three times without valid response");
+
+        return EmotionMode.Neutral;
+    }
+
     public async Task<ConversationMode> DetectMode(List<Message> recentMessages)
     {
         if (recentMessages.Count == 0)
@@ -84,6 +133,27 @@ public class ModeDetector
         }
 
         var lastMessage = recentMessages.TakeLast(1).ToList();
+
+        var isEmotional = await ModeQuery(lastMessage, MODE_SELECT_IS_EMOTIONAL);
+
+        if (isEmotional)
+        {
+            var emotion = await DetectEmotion(lastMessage);
+
+            switch (emotion)
+            {
+                case EmotionMode.Happy:
+                    break;
+                case EmotionMode.Sad:
+                    return await HandleNonCasual(lastMessage);
+                case EmotionMode.Angry:
+                    return await HandleNonCasual(lastMessage);
+                case EmotionMode.Anxious:
+                    return await HandleNonCasual(lastMessage);
+                case EmotionMode.Neutral:
+                    break;
+            }
+        }
 
         var isQuestion = await ModeQuery(lastMessage, MODE_SELECT_IS_QUESTION);
 
