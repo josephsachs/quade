@@ -7,7 +7,7 @@ namespace Omoi.Services;
 
 public class ChatContextBuilder
 {
-    private const int MAX_CONTEXT_MESSAGES = 14;
+    private const int MAX_CONTEXT_MESSAGES = 20;
     private const int TOP_K_MEMORIES = 4;
 
     private const float SIMILARITY_THRESHOLD = 0.15f;
