@@ -70,7 +70,7 @@ public class DeepSeekClient : IModelProvider
             apiMessages.Add(new
             {
                 role = "system",
-                content = systemPrompt
+                content = $"{systemPrompt} Be judicious with compliments and flattery. Don't use emotes or stage direction unless responding to user in kind."
             });
         }
         

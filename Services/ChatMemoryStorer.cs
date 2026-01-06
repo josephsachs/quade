@@ -151,13 +151,11 @@ public class ChatMemoryStorer
 
             {{transcript}}
 
-            Review this conversation and extract only what's worth remembering - facts, coinages or idiosyncratic definitions, insights, or interesting concepts. 
+            Extract idiosyncratic ideas, insights, or interesting concepts. Skip routine chitchat. Skip trivial events. Ignore jokes unless they're insightful. Err on the side of parsimony. Retain what has explanatory power. Skip most trivial facts about the user, preserve those that are either personal talismans or have thematic relevance.
             
-            Skip routine pleasantries. When the user shares an event, skip trivial or isolated ones, retain those that have explanatory power. Ignore humorous flights and sarcastic remark unless they are built upon fruitfully. Skip most trivial facts about the user, preserve those that are either personal talismans or have thematic relevance.
-            
-            When noting assistant's own insights, note that the assistant originated them.
+            When noting assistant's own insights, note that the assistant originated them, but avoid recounting exchanges.
 
-            Write one paragraph per distinct topic, summarized eloquently in 1-3 sentences, erring on the side of brevity. Separate paragraphs with a blank line. Max 4 items.
+            Write one paragraph per distinct item, capturing the memorable crux, at most a couple of sentences. Separate paragraphs with a blank line. Max 2 items.
 
             Do not use headings, bullet points, numbered lists, bold text, or any other formatting. Do not prefix paragraphs with labels like 'Topic:' or 'Memory:'. Just plain prose.
             """;
